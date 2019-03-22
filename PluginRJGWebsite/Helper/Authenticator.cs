@@ -83,7 +83,7 @@ namespace PluginRJGWebsite.Helper
                 // check if token is still valid
                 var envConfig = new EnvironmentHelper(_settings.Environment);
 
-                var uri = String.Format("{0}/jwt-auth/v1/token/validate", envConfig.Endpoint);
+                var uri = $"{envConfig.Endpoint}/jwt-auth/v1/token/validate";
 
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
@@ -93,7 +93,7 @@ namespace PluginRJGWebsite.Helper
 
                 return _token;
             }
-            catch (Exception e)
+            catch
             {
                 // get new token if not valid
                 return await GetNewToken();

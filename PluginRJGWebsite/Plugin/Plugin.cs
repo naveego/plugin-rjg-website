@@ -23,6 +23,7 @@ namespace PluginRJGWebsite.Plugin
         private RequestHelper _client;
         private readonly HttpClient _injectedClient;
         private readonly ServerStatus _server;
+        private readonly EndpointHelper _endpointHelper;
         private TaskCompletionSource<bool> _tcs;
 
         public Plugin(HttpClient client = null)
@@ -33,6 +34,7 @@ namespace PluginRJGWebsite.Plugin
                 Connected = false,
                 WriteConfigured = false
             };
+            _endpointHelper = new EndpointHelper();
         }
 
         /// <summary>
@@ -82,14 +84,8 @@ namespace PluginRJGWebsite.Plugin
                 var response = await _client.GetAsync("/rjg/v1/courses");
                 response.EnsureSuccessStatusCode();
 
-                var content = JsonConvert.DeserializeObject<List<object>>(await response.Content.ReadAsStringAsync());
-
-                if (content.Count > 0)
-                {
-                    _server.Connected = true;
-
-                    Logger.Info("Connected to RJG Website");
-                }
+                _server.Connected = true;
+                Logger.Info("Connected to RJG Website");
             }
             catch (Exception e)
             {
@@ -147,9 +143,6 @@ namespace PluginRJGWebsite.Plugin
 
             var discoverSchemasResponse = new DiscoverSchemasResponse();
 
-            // endpoint helper contains all target endpoints
-            var endPointHelper = new EndpointHelper();
-
             // only return requested schemas if refresh mode selected
             if (request.Mode == DiscoverSchemasRequest.Types.Mode.Refresh)
             {
@@ -161,7 +154,7 @@ namespace PluginRJGWebsite.Plugin
 
                     var tasks = refreshSchemas.Select((s) =>
                         {
-                            var endpoint = endPointHelper.GetEndpointForName(s.Id);
+                            var endpoint = _endpointHelper.GetEndpointForName(s.Id);
                             return GetSchemaForEndpoint(endpoint);
                         })
                         .ToArray();
@@ -184,9 +177,9 @@ namespace PluginRJGWebsite.Plugin
             // get all schemas
             try
             {
-                Logger.Info($"Schemas attempted: {endPointHelper.Endpoints.Count}");
+                Logger.Info($"Schemas attempted: {_endpointHelper.Endpoints.Count}");
 
-                var tasks = endPointHelper.Endpoints.Select(GetSchemaForEndpoint)
+                var tasks = _endpointHelper.Endpoints.Select(GetSchemaForEndpoint)
                     .ToArray();
 
                 await Task.WhenAll(tasks);
@@ -217,8 +210,7 @@ namespace PluginRJGWebsite.Plugin
             var schema = request.Schema;
             var limit = request.Limit;
             var limitFlag = request.Limit != 0;
-            var endpointHelper = new EndpointHelper();
-            var endpoint = endpointHelper.GetEndpointForName(schema.Id);
+            var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
 
             Logger.Info($"Publishing records for schema: {schema.Name}");
 
@@ -230,7 +222,7 @@ namespace PluginRJGWebsite.Plugin
                 // get all records
                 if (!String.IsNullOrEmpty(endpoint.MetaDataPath))
                 {
-                    var tasks = endpoint.ReadPaths.Select(GetRecordsForMetaDataPath)
+                    var tasks = endpoint.ReadPaths.Select(GetRecordsHasMetaDataPath)
                         .ToArray();
 
                     await Task.WhenAll(tasks);
@@ -239,7 +231,7 @@ namespace PluginRJGWebsite.Plugin
                 }
                 else
                 {
-                    var tasks = endpoint.ReadPaths.Select(GetRecordsForNoMetaDataPath)
+                    var tasks = endpoint.ReadPaths.Select(GetRecordsNoMetaDataPath)
                         .ToArray();
 
                     await Task.WhenAll(tasks);
@@ -262,6 +254,7 @@ namespace PluginRJGWebsite.Plugin
                                     {
                                         record[property.Id] = JsonConvert.SerializeObject(value);
                                     }
+
                                     break;
                                 case PropertyType.Json:
                                     value = record[property.Id];
@@ -270,10 +263,10 @@ namespace PluginRJGWebsite.Plugin
                                         Data = value
                                     };
                                     break;
-                            }  
+                            }
                         }
                     }
-                    
+
                     var recordOutput = new Record
                     {
                         Action = Record.Types.Action.Upsert,
@@ -326,69 +319,70 @@ namespace PluginRJGWebsite.Plugin
         }
 
         /// <summary>
-        /// Takes in records and writes them out to the Zoho instance then sends acks back to the client
+        /// Takes in records and writes them out to the RJG Website then sends acks back to the client
         /// </summary>
         /// <param name="requestStream"></param>
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-//        public override async Task WriteStream(IAsyncStreamReader<Record> requestStream,
-//            IServerStreamWriter<RecordAck> responseStream, ServerCallContext context)
-//        {
-//            try
-//            {
-//                Logger.Info("Writing records to Zoho...");
-//                var schema = _server.WriteSettings.Schema;
-//                var sla = _server.WriteSettings.CommitSLA;
-//                var inCount = 0;
-//                var outCount = 0;
-//                
-//                // get next record to publish while connected and configured
-//                while (await requestStream.MoveNext(context.CancellationToken) && _server.Connected && _server.WriteConfigured)
-//                {
-//                    var record = requestStream.Current;
-//                    inCount++;
-//                    
-//                    Logger.Debug($"Got record: {record.DataJson}");
-//                    
-//                    // send record to source system
-//                    // timeout if it takes longer than the sla
-//                    var task = Task.Run(() => PutRecord(schema,record));
-//                    if (task.Wait(TimeSpan.FromSeconds(sla)))
-//                    {
-//                        // send ack
-//                        var ack = new RecordAck
-//                        {
-//                            CorrelationId = record.CorrelationId,
-//                            Error = task.Result
-//                        };
-//                        await responseStream.WriteAsync(ack);
-//                        
-//                        if (String.IsNullOrEmpty(task.Result))
-//                        {
-//                            outCount++;
-//                        }
-//                    }
-//                    else
-//                    {
-//                        // send timeout ack
-//                        var ack = new RecordAck
-//                        {
-//                            CorrelationId = record.CorrelationId,
-//                            Error = "timed out"
-//                        };
-//                        await responseStream.WriteAsync(ack);
-//                    }
-//                }
-//                
-//                Logger.Info($"Wrote {outCount} of {inCount} records to Zoho.");
-//            }
-//            catch (Exception e)
-//            {
-//                Logger.Error(e.Message);
-//                throw;
-//            }
-//        }
+        public override async Task WriteStream(IAsyncStreamReader<Record> requestStream,
+            IServerStreamWriter<RecordAck> responseStream, ServerCallContext context)
+        {
+            try
+            {
+                Logger.Info("Writing records to RJG Website...");
+                var schema = _server.WriteSettings.Schema;
+                var sla = _server.WriteSettings.CommitSLA;
+                var inCount = 0;
+                var outCount = 0;
+
+                // get next record to publish while connected and configured
+                while (await requestStream.MoveNext(context.CancellationToken) && _server.Connected &&
+                       _server.WriteConfigured)
+                {
+                    var record = requestStream.Current;
+                    inCount++;
+
+                    Logger.Debug($"Got record: {record.DataJson}");
+
+                    // send record to source system
+                    // timeout if it takes longer than the sla
+                    var task = Task.Run(() => PutRecord(schema, record));
+                    if (task.Wait(TimeSpan.FromSeconds(sla)))
+                    {
+                        // send ack
+                        var ack = new RecordAck
+                        {
+                            CorrelationId = record.CorrelationId,
+                            Error = task.Result
+                        };
+                        await responseStream.WriteAsync(ack);
+
+                        if (String.IsNullOrEmpty(task.Result))
+                        {
+                            outCount++;
+                        }
+                    }
+                    else
+                    {
+                        // send timeout ack
+                        var ack = new RecordAck
+                        {
+                            CorrelationId = record.CorrelationId,
+                            Error = "timed out"
+                        };
+                        await responseStream.WriteAsync(ack);
+                    }
+                }
+
+                Logger.Info($"Wrote {outCount} of {inCount} records to RJG Website.");
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                throw;
+            }
+        }
 
         /// <summary>
         /// Handles disconnect requests from the agent
@@ -459,6 +453,34 @@ namespace PluginRJGWebsite.Plugin
 
                     schema.Properties.Add(key);
 
+                    var create = new Property
+                    {
+                        Id = "created_at",
+                        Name = "created_at",
+                        Type = PropertyType.Datetime,
+                        IsKey = false,
+                        IsCreateCounter = true,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "created_at",
+                        IsNullable = false
+                    };
+
+                    schema.Properties.Add(create);
+
+                    var update = new Property
+                    {
+                        Id = "updated_at",
+                        Name = "updated_at",
+                        Type = PropertyType.Datetime,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = true,
+                        TypeAtSource = "updated_at",
+                        IsNullable = false
+                    };
+
+                    schema.Properties.Add(update);
+
                     foreach (var fieldKey in fields.Keys)
                     {
                         var field = fields[fieldKey];
@@ -496,9 +518,9 @@ namespace PluginRJGWebsite.Plugin
                             Id = recordKey,
                             Name = recordKey,
                             Type = GetPropertyTypeFromValue(value),
-                            IsKey = false,
-                            IsCreateCounter = false,
-                            IsUpdateCounter = false,
+                            IsKey = recordKey == "id",
+                            IsCreateCounter = recordKey.Contains("date_created"),
+                            IsUpdateCounter = recordKey.Contains("date_modified"),
                             TypeAtSource = "",
                             IsNullable = true
                         };
@@ -571,7 +593,7 @@ namespace PluginRJGWebsite.Plugin
                 {
                     return PropertyType.String;
                 }
-                
+
                 // try object or array
                 if (value is IEnumerable)
                 {
@@ -580,7 +602,7 @@ namespace PluginRJGWebsite.Plugin
 
                 return PropertyType.String;
             }
-            catch (Exception e)
+            catch
             {
                 return PropertyType.String;
             }
@@ -591,7 +613,7 @@ namespace PluginRJGWebsite.Plugin
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        private async Task<List<Dictionary<string, object>>> GetRecordsForMetaDataPath(string path)
+        private async Task<List<Dictionary<string, object>>> GetRecordsHasMetaDataPath(string path)
         {
             var records = new List<Dictionary<string, object>>();
             try
@@ -605,26 +627,27 @@ namespace PluginRJGWebsite.Plugin
 
                 foreach (var record in recordsResponse)
                 {
-                    var data = JsonConvert.DeserializeObject<Dictionary<string,object>>(JsonConvert.SerializeObject(record.Value["meta"]));
-                    data.Add("id",record.Value["id"]);
+                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                        JsonConvert.SerializeObject(record.Value["meta"]));
+                    data.Add("id", record.Value["id"]);
                     records.Add(data);
                 }
 
                 return records;
             }
-            catch (Exception e)
+            catch
             {
                 Logger.Info($"No records for path {path}");
                 return records;
             }
         }
-        
+
         /// <summary>
         /// Gets all records
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        private async Task<List<Dictionary<string, object>>> GetRecordsForNoMetaDataPath(string path)
+        private async Task<List<Dictionary<string, object>>> GetRecordsNoMetaDataPath(string path)
         {
             var records = new List<Dictionary<string, object>>();
             try
@@ -633,7 +656,7 @@ namespace PluginRJGWebsite.Plugin
                 response.EnsureSuccessStatusCode();
 
                 var recordsResponse =
-                    JsonConvert.DeserializeObject<List<Dictionary<string,object>>>(
+                    JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
                         await response.Content.ReadAsStringAsync());
 
                 foreach (var record in recordsResponse)
@@ -643,7 +666,7 @@ namespace PluginRJGWebsite.Plugin
 
                 return records;
             }
-            catch (Exception e)
+            catch
             {
                 Logger.Info($"No records for path {path}");
                 return records;
@@ -651,95 +674,103 @@ namespace PluginRJGWebsite.Plugin
         }
 
         /// <summary>
-        /// Writes a record out to Zoho
+        /// Writes a record out to RJG Website
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-//        private async Task<string> PutRecord(Schema schema, Record record)
-//        {
-//            Dictionary<string, object> recObj;
-//            
-//            // get information from schema
-//            var moduleName = GetModuleName(schema);
-//            
-//            try
-//            {
-//                // check if source has newer record than write back record
-//                recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
-//
-//                if (recObj.ContainsKey("id"))
-//                {
-//                    var id = recObj["id"];
-//                
-//                    // build and send request
-//                    var uri = String.Format("https://www.zohoapis.com/crm/v2/{0}/{1}", moduleName, id ?? "null");
-//
-//                    var response = await _client.GetAsync(uri);
-//                    if (IsSuccessAndNotEmpty(response))
-//                    {
-//                        var recordsResponse = JsonConvert.DeserializeObject<RecordsResponse>(await response.Content.ReadAsStringAsync());
-//                        var srcObj = recordsResponse.data[0];
-//                
-//                        // get modified key from schema
-//                        var modifiedKey = schema.Properties.First(x => x.IsUpdateCounter);
-//
-//                        if (recObj.ContainsKey(modifiedKey.Id) && srcObj.ContainsKey(modifiedKey.Id))
-//                        {
-//                            if (recObj[modifiedKey.Id] != null && srcObj[modifiedKey.Id] != null)
-//                            {
-//                                // if source is newer than request then exit
-//                                if (DateTime.Parse((string) recObj[modifiedKey.Id]) <=
-//                                    DateTime.Parse((string) srcObj[modifiedKey.Id]))
-//                                {
-//                                    Logger.Info($"Source is newer for record {record.DataJson}");
-//                                    return "source system is newer than requested write back";
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                Logger.Error(e.Message);
-//                return e.Message;
-//            }
-//            try
-//            {   
-//                // build and send request
-//                var uri = String.Format("https://www.zohoapis.com/crm/v2/{0}/upsert", moduleName);
-//                
-//                var putRequestObj = new PutRequest
-//                {
-//                    data = new [] {recObj},
-//                    trigger = new string[0]
-//                };
-//
-//                var content = new StringContent(JsonConvert.SerializeObject(putRequestObj), Encoding.UTF8, "application/json");
-//                
-//                var response = await _client.PostAsync(uri, content);
-//                
-//                response.EnsureSuccessStatusCode();
-//                
-//                Logger.Info("Modified 1 record.");
-//                return "";
-//            }
-//            catch (Exception e)
-//            {
-//                Logger.Error(e.Message);
-//                return e.Message;
-//            }
-//        }
+        private async Task<string> PutRecord(Schema schema, Record record)
+        {
+            Dictionary<string, object> recObj;
+            var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
+            
+            if (String.IsNullOrEmpty(endpoint.MetaDataPath))
+            {
+                try
+                {
+                    // check if source has newer record than write back record
+                    recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
+
+                    if (recObj.ContainsKey("id"))
+                    {
+                        var id = recObj["id"];
+
+                        // build and send request
+                        var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
+
+                        var response = await _client.GetAsync(path);
+                        response.EnsureSuccessStatusCode();
+
+                        var srcObj =
+                            JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                                await response.Content.ReadAsStringAsync());
+
+                        // get modified key from schema
+                        var modifiedKey = schema.Properties.First(x => x.IsUpdateCounter);
+                       
+                        if (recObj.ContainsKey(modifiedKey.Id) && srcObj.ContainsKey(modifiedKey.Id))
+                        {
+                            if (recObj[modifiedKey.Id] != null && srcObj[modifiedKey.Id] != null)
+                            {
+                                // if source is newer than request exit
+                                if (DateTime.Parse(recObj[modifiedKey.Id].ToString()) <=
+                                    DateTime.Parse(srcObj[modifiedKey.Id].ToString()))
+                                {
+                                    Logger.Info($"Source is newer for record {record.DataJson}");
+                                    return "source system is newer than requested write back";
+                                }
+                            }
+                        }
+
+                        var patchObj = GetPatchObject(endpoint, recObj);
+                        
+                        var content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
+                            "application/json");
+
+                        response = await _client.PatchAsync(path, content);
+                        response.EnsureSuccessStatusCode();
+
+                        Logger.Info("Modified 1 record.");
+                        return "";
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e.Message);
+                    return e.Message;
+                }
+            }
+            
+            // code for modifying forms would go here if needed but currently is not needed
+
+            return "";
+        }
 
         /// <summary>
-        /// Checks if a http response message is not empty and did not fail
+        /// Gets the object to write out to the endpoint
         /// </summary>
-        /// <param name="response"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="recObj"></param>
         /// <returns></returns>
-        private bool IsSuccessAndNotEmpty(HttpResponseMessage response)
+        private object GetPatchObject(Endpoint endpoint, Dictionary<string, object> recObj)
         {
-            return response.StatusCode != HttpStatusCode.NoContent && response.IsSuccessStatusCode;
+            switch (endpoint.Name)
+            {
+                case "Classes":
+                    return new ClassesPatchObject
+                    {
+                        OpenSeats = int.Parse(recObj["open_seats"].ToString()),
+                        Language = recObj["language"].ToString(),
+                        Location = recObj["location"].ToString(),
+                        StartDate = recObj["start_date"].ToString(),
+                        EndDate = recObj["end_date"].ToString(),
+                        SKU = recObj["sku"].ToString(),
+                        CourseSKU = recObj["course_sku"].ToString(),
+                        Price = recObj["price"].ToString()
+                    };
+                default:
+                    return new object();
+            }
         }
     }
 }

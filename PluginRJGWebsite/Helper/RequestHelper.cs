@@ -144,5 +144,48 @@ namespace PluginRJGWebsite.Helper
                 throw;
             }
         }
+        
+        /// <summary>
+        /// Patch async wrapper for making authenticated requests
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public async Task<HttpResponseMessage> PatchAsync(string path, StringContent json)
+        {
+            string token;
+
+            // get the token
+            try
+            {
+                token = await _authenticator.GetToken();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                throw;
+            }
+            
+            // add token to the request and execute the request
+            try
+            {
+                var envConfig = new EnvironmentHelper(_settings.Environment);
+
+                var uri = String.Format("{0}/{1}", envConfig.Endpoint, path.TrimStart('/'));
+                
+                var client = _client;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = await client.PatchAsync(uri, json);
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                throw;
+            }
+        }
     }
 }
