@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace PluginRJGWebsite.DataContracts
 {
-    public class ClassesPatchObject
+    public class ClassesPostObject
     {
         [JsonProperty("open_seats")]
         public int OpenSeats { get; set; }
@@ -18,6 +18,9 @@ namespace PluginRJGWebsite.DataContracts
         
         [JsonProperty("end_date")]
         public string EndDate { get; set; }
+        
+        [JsonProperty("sku")]
+        public string SKU { get; set; }
         
         [JsonProperty("course_sku")]
         public string CourseSKU { get; set; }

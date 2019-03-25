@@ -485,19 +485,41 @@ namespace PluginRJGWebsite.Plugin
                     {
                         var field = fields[fieldKey];
 
-                        var property = new Property
+                        if (field.FieldKey.Split("_").Length > 1)
                         {
-                            Id = field.FieldKey,
-                            Name = field.Name,
-                            Type = GetPropertyTypeFromField(field),
-                            IsKey = false,
-                            IsCreateCounter = false,
-                            IsUpdateCounter = false,
-                            TypeAtSource = field.Type,
-                            IsNullable = field.Required != "1"
-                        };
+                            var property = new Property
+                            {
+                                Id = field.FieldKey.Split("_")[1],
+                                Name = field.Name,
+                                Type = GetPropertyTypeFromField(field),
+                                IsKey = false,
+                                IsCreateCounter = false,
+                                IsUpdateCounter = false,
+                                TypeAtSource = field.Type,
+                                IsNullable = field.Required != "1"
+                            };
 
-                        schema.Properties.Add(property);
+                            schema.Properties.Add(property);
+                        }
+                        else
+                        {
+                            if (!field.Type.ToLower().Contains("divider") && !field.Type.ToLower().Contains("break"))
+                            {
+                                var property = new Property
+                                {
+                                    Id = field.FieldKey,
+                                    Name = field.Name,
+                                    Type = GetPropertyTypeFromField(field),
+                                    IsKey = false,
+                                    IsCreateCounter = false,
+                                    IsUpdateCounter = false,
+                                    TypeAtSource = field.Type,
+                                    IsNullable = field.Required != "1"
+                                };
+
+                                schema.Properties.Add(property);
+                            }
+                        }
                     }
                 }
                 else
@@ -627,10 +649,18 @@ namespace PluginRJGWebsite.Plugin
 
                 foreach (var record in recordsResponse)
                 {
+                    var outData = new Dictionary<string,object>();
                     var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
                         JsonConvert.SerializeObject(record.Value["meta"]));
-                    data.Add("id", record.Value["id"]);
-                    records.Add(data);
+                    
+                    outData.Add("id", record.Value["id"]);
+
+                    foreach (var field in data)
+                    {
+                        outData.Add(field.Key.Split("_")[1], field.Value);
+                    }
+                    
+                    records.Add(outData);
                 }
 
                 return records;
@@ -683,7 +713,7 @@ namespace PluginRJGWebsite.Plugin
         {
             Dictionary<string, object> recObj;
             var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
-            
+
             if (String.IsNullOrEmpty(endpoint.MetaDataPath))
             {
                 try
@@ -693,46 +723,66 @@ namespace PluginRJGWebsite.Plugin
 
                     if (recObj.ContainsKey("id"))
                     {
-                        var id = recObj["id"];
-
-                        // build and send request
-                        var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
-
-                        var response = await _client.GetAsync(path);
-                        response.EnsureSuccessStatusCode();
-
-                        var srcObj =
-                            JsonConvert.DeserializeObject<Dictionary<string, object>>(
-                                await response.Content.ReadAsStringAsync());
-
-                        // get modified key from schema
-                        var modifiedKey = schema.Properties.First(x => x.IsUpdateCounter);
-                       
-                        if (recObj.ContainsKey(modifiedKey.Id) && srcObj.ContainsKey(modifiedKey.Id))
+                        if (recObj["id"] != null)
                         {
-                            if (recObj[modifiedKey.Id] != null && srcObj[modifiedKey.Id] != null)
+                            // record already exists, check date then patch it
+                            var id = recObj["id"];
+
+                            // build and send request
+                            var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
+
+                            var response = await _client.GetAsync(path);
+                            response.EnsureSuccessStatusCode();
+
+                            var srcObj =
+                                JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                                    await response.Content.ReadAsStringAsync());
+
+                            // get modified key from schema
+                            var modifiedKey = schema.Properties.First(x => x.IsUpdateCounter);
+
+                            if (recObj.ContainsKey(modifiedKey.Id) && srcObj.ContainsKey(modifiedKey.Id))
                             {
-                                // if source is newer than request exit
-                                if (DateTime.Parse(recObj[modifiedKey.Id].ToString()) <=
-                                    DateTime.Parse(srcObj[modifiedKey.Id].ToString()))
+                                if (recObj[modifiedKey.Id] != null && srcObj[modifiedKey.Id] != null)
                                 {
-                                    Logger.Info($"Source is newer for record {record.DataJson}");
-                                    return "source system is newer than requested write back";
+                                    // if source is newer than request exit
+                                    if (DateTime.Parse(recObj[modifiedKey.Id].ToString()) <=
+                                        DateTime.Parse(srcObj[modifiedKey.Id].ToString()))
+                                    {
+                                        Logger.Info($"Source is newer for record {record.DataJson}");
+                                        return "source system is newer than requested write back";
+                                    }
                                 }
                             }
+
+                            var patchObj = GetPatchObject(endpoint, recObj);
+
+                            var content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
+                                "application/json");
+
+                            response = await _client.PatchAsync(path, content);
+                            response.EnsureSuccessStatusCode();
+
+                            Logger.Info("Modified 1 record.");
+                            return "";
                         }
+                        else
+                        {
+                            // record does not exist, create it
+                            var postObj = GetPostObject(endpoint, recObj);
 
-                        var patchObj = GetPatchObject(endpoint, recObj);
-                        
-                        var content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
-                            "application/json");
+                            var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
+                                "application/json");
 
-                        response = await _client.PatchAsync(path, content);
-                        response.EnsureSuccessStatusCode();
+                            var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
+                            response.EnsureSuccessStatusCode();
 
-                        Logger.Info("Modified 1 record.");
-                        return "";
+                            Logger.Info("Created 1 record.");
+                            return "";
+                        }
                     }
+
+                    return "Key 'id' not found on requested record to write back.";
                 }
                 catch (Exception e)
                 {
@@ -740,10 +790,10 @@ namespace PluginRJGWebsite.Plugin
                     return e.Message;
                 }
             }
-            
+
             // code for modifying forms would go here if needed but currently is not needed
 
-            return "";
+            return "Write backs are only supported for Classes.";
         }
 
         /// <summary>
@@ -753,11 +803,37 @@ namespace PluginRJGWebsite.Plugin
         /// <param name="recObj"></param>
         /// <returns></returns>
         private object GetPatchObject(Endpoint endpoint, Dictionary<string, object> recObj)
-        {
+        { 
             switch (endpoint.Name)
             {
                 case "Classes":
                     return new ClassesPatchObject
+                    {
+                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString()) ? int.Parse(recObj["open_seats"].ToString()) : 0,
+                        Language = recObj["language"].ToString(),
+                        Location = recObj["location"].ToString(),
+                        StartDate = recObj["start_date"].ToString(),
+                        EndDate = recObj["end_date"].ToString(),
+                        CourseSKU = recObj["course_sku"].ToString(),
+                        Price = recObj["price"].ToString()
+                    };
+                default:
+                    return new object();
+            }
+        }
+        
+        /// <summary>
+        /// Gets the object to write out to the endpoint
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="recObj"></param>
+        /// <returns></returns>
+        private object GetPostObject(Endpoint endpoint, Dictionary<string, object> recObj)
+        {
+            switch (endpoint.Name)
+            {
+                case "Classes":
+                    return new ClassesPostObject
                     {
                         OpenSeats = int.Parse(recObj["open_seats"].ToString()),
                         Language = recObj["language"].ToString(),

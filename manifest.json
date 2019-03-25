@@ -10,7 +10,11 @@
   "kind": "publisher",
   "os": "$GOOS",
   "arch": "$GOARCH",
-  "accessGroup": [],
+  "accessGroups": [
+    "vandelay",
+    "rjg",
+    "rjgtest"
+  ],
   "canProduceMultipleSchemas": true,
   "canAcceptQueryBasedSchemas": false,
   "canUseOAuth": false,
