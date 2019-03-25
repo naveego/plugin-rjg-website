@@ -347,7 +347,16 @@ namespace PluginRJGWebsite.Plugin
 
                     // send record to source system
                     // timeout if it takes longer than the sla
-                    var task = Task.Run(() => PutRecord(schema, record));
+                    Task<string> task;
+
+                    if (record.Action == Record.Types.Action.Delete)
+                    {
+                        task = Task.Run(() => DeleteRecord(schema, record));
+                    }
+                    else
+                    {
+                        task = Task.Run(() => PutRecord(schema, record));
+                    }
                     if (task.Wait(TimeSpan.FromSeconds(sla)))
                     {
                         // send ack
@@ -849,6 +858,12 @@ namespace PluginRJGWebsite.Plugin
             }
         }
 
+        /// <summary>
+        /// Deletes a record from the RJG Website
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="record"></param>
+        /// <returns></returns>
         private async Task<string> DeleteRecord(Schema schema, Record record)
         {
             Dictionary<string, object> recObj;
