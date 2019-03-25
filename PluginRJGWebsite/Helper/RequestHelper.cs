@@ -10,12 +10,14 @@ namespace PluginRJGWebsite.Helper
         private readonly Authenticator _authenticator;
         private readonly HttpClient _client;
         private readonly Settings _settings;
+        private readonly EnvironmentHelper _envConfig;
         
         public RequestHelper(Settings settings, HttpClient client)
         {
             _authenticator = new Authenticator(settings, client);
             _client = client;
             _settings = settings;
+            _envConfig = new EnvironmentHelper(settings.Environment);
         }
 
         /// <summary>
@@ -41,9 +43,7 @@ namespace PluginRJGWebsite.Helper
             // add token to the request and execute the request
             try
             {
-                var envConfig = new EnvironmentHelper(_settings.Environment);
-
-                var uri = String.Format("{0}/{1}", envConfig.Endpoint, path.TrimStart('/'));
+                var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -83,9 +83,7 @@ namespace PluginRJGWebsite.Helper
             // add token to the request and execute the request
             try
             {
-                var envConfig = new EnvironmentHelper(_settings.Environment);
-
-                var uri = String.Format("{0}/{1}", envConfig.Endpoint, path.TrimStart('/'));
+                var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -126,9 +124,7 @@ namespace PluginRJGWebsite.Helper
             // add token to the request and execute the request
             try
             {
-                var envConfig = new EnvironmentHelper(_settings.Environment);
-
-                var uri = String.Format("{0}/{1}", envConfig.Endpoint, path.TrimStart('/'));
+                var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -169,15 +165,52 @@ namespace PluginRJGWebsite.Helper
             // add token to the request and execute the request
             try
             {
-                var envConfig = new EnvironmentHelper(_settings.Environment);
-
-                var uri = String.Format("{0}/{1}", envConfig.Endpoint, path.TrimStart('/'));
+                var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var response = await client.PatchAsync(uri, json);
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// Delete async wrapper for making authenticated requests
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public async Task<HttpResponseMessage> DeleteAsync(string path)
+        {
+            string token;
+
+            // get the token
+            try
+            {
+                token = await _authenticator.GetToken();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                throw;
+            }
+            
+            // add token to the request and execute the request
+            try
+            {
+                var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
+                
+                var client = _client;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await client.DeleteAsync(uri);
 
                 return response;
             }

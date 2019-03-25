@@ -835,7 +835,7 @@ namespace PluginRJGWebsite.Plugin
                 case "Classes":
                     return new ClassesPostObject
                     {
-                        OpenSeats = int.Parse(recObj["open_seats"].ToString()),
+                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString()) ? int.Parse(recObj["open_seats"].ToString()) : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
                         StartDate = recObj["start_date"].ToString(),
@@ -847,6 +847,58 @@ namespace PluginRJGWebsite.Plugin
                 default:
                     return new object();
             }
+        }
+
+        private async Task<string> DeleteRecord(Schema schema, Record record)
+        {
+            Dictionary<string, object> recObj;
+            var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
+
+            if (String.IsNullOrEmpty(endpoint.MetaDataPath))
+            {
+                try
+                {
+                    recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
+
+                    if (recObj.ContainsKey("id"))
+                    {
+                        if (recObj["id"] != null)
+                        {
+                            // delete record
+                            // try each endpoint
+                            foreach (var path in endpoint.ReadPaths)
+                            {
+                                try
+                                {
+                                    var uri = String.Format("{0}/{1}", path, recObj["id"]);
+                                    var response = await _client.DeleteAsync(uri);
+                                    response.EnsureSuccessStatusCode();
+
+                                    Logger.Info("Deleted 1 record.");
+                                    return "";
+                                }
+                                catch (Exception e)
+                                {
+                                    Logger.Error(e.Message);
+                                }
+                            }    
+                        }
+                        
+                        return "Could not delete record with no id.";
+                    }
+
+                    return "Key 'id' not found on requested record to write back.";
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e.Message);
+                    return e.Message;
+                }
+            }
+
+            // code for modifying forms would go here if needed but currently is not needed
+
+            return "Write backs are only supported for Classes.";
         }
     }
 }
