@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PluginRJGWebsite.DataContracts;
 using PluginRJGWebsite.Helper;
 using Pub;
@@ -353,6 +354,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         task = Task.Run(() => PutRecord(schema, record));
                     }
+
                     if (task.Wait(TimeSpan.FromSeconds(sla)))
                     {
                         // send ack
@@ -587,7 +589,7 @@ namespace PluginRJGWebsite.Plugin
         /// </summary>
         /// <param name="records"></param>
         /// <returns>The property type</returns>
-        private Dictionary<string,PropertyType> GetPropertyTypesFromRecords(List<Dictionary<string, object>> records)
+        private Dictionary<string, PropertyType> GetPropertyTypesFromRecords(List<Dictionary<string, object>> records)
         {
             try
             {
@@ -604,51 +606,51 @@ namespace PluginRJGWebsite.Plugin
                             {
                                 {PropertyType.Bool, 0},
                                 {PropertyType.Integer, 0},
+                                {PropertyType.Float, 0},
                                 {PropertyType.Json, 0},
                                 {PropertyType.Datetime, 0},
                                 {PropertyType.String, 0}
                             });
                         }
-                        
-                        var value = record[recordKey];
-                        var type = value != null
-                            ? value.GetType().ToString().ToLower()
-                            : "null";
 
-                        if (type.Contains("null"))
-                        {
+                        var value = record[recordKey];
+
+                        if (value == null)
                             continue;
-                        }
                         
-                        if (type.Contains("boolean"))
+                        switch (value)
                         {
-                            discoveredTypes[recordKey][PropertyType.Bool]++;
-                        }
-                        else if (type.Contains("int"))
-                        {
-                            discoveredTypes[recordKey][PropertyType.Integer]++;
-                        }
-                        else if (type.Contains("json"))
-                        {
-                            discoveredTypes[recordKey][PropertyType.Json]++;
-                        }
-                        else
-                        {
-                            if (DateTime.TryParse(value.ToString(), out DateTime d))
+                            case bool _:
+                                discoveredTypes[recordKey][PropertyType.Bool]++;
+                                break;
+                            case long _:
+                                discoveredTypes[recordKey][PropertyType.Integer]++;
+                                break;
+                            case double _:
+                                discoveredTypes[recordKey][PropertyType.Float]++;
+                                break;
+                            case JToken _:
+                                discoveredTypes[recordKey][PropertyType.Json]++;
+                                break;
+                            default:
                             {
-                                discoveredTypes[recordKey][PropertyType.Datetime]++;
-                            }
-                            else
-                            {
-                                discoveredTypes[recordKey][PropertyType.String]++;
+                                if (DateTime.TryParse(value.ToString(), out DateTime d))
+                                {
+                                    discoveredTypes[recordKey][PropertyType.Datetime]++;
+                                }
+                                else
+                                {
+                                    discoveredTypes[recordKey][PropertyType.String]++;
+                                }
+                                break;
                             }
                         }
                     }
                 }
-                
+
                 // return object
-                var outTypes = new Dictionary<string,PropertyType>();
-                
+                var outTypes = new Dictionary<string, PropertyType>();
+
                 // get the most frequent type of each property
                 foreach (var typesDic in discoveredTypes)
                 {
@@ -684,17 +686,17 @@ namespace PluginRJGWebsite.Plugin
 
                 foreach (var record in recordsResponse)
                 {
-                    var outData = new Dictionary<string,object>();
+                    var outData = new Dictionary<string, object>();
                     var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
                         JsonConvert.SerializeObject(record.Value["meta"]));
-                    
+
                     outData.Add("id", record.Value["id"]);
 
                     foreach (var field in data)
                     {
                         outData.Add(field.Key.Split("_")[1], field.Value);
                     }
-                    
+
                     records.Add(outData);
                 }
 
@@ -838,13 +840,15 @@ namespace PluginRJGWebsite.Plugin
         /// <param name="recObj"></param>
         /// <returns></returns>
         private object GetPatchObject(Endpoint endpoint, Dictionary<string, object> recObj)
-        { 
+        {
             switch (endpoint.Name)
             {
                 case "Classes":
                     return new ClassesPatchObject
                     {
-                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString()) ? int.Parse(recObj["open_seats"].ToString()) : 0,
+                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString())
+                            ? int.Parse(recObj["open_seats"].ToString())
+                            : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
                         StartDate = recObj["start_date"].ToString(),
@@ -856,7 +860,7 @@ namespace PluginRJGWebsite.Plugin
                     return new object();
             }
         }
-        
+
         /// <summary>
         /// Gets the object to write out to the endpoint
         /// </summary>
@@ -870,7 +874,9 @@ namespace PluginRJGWebsite.Plugin
                 case "Classes":
                     return new ClassesPostObject
                     {
-                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString()) ? int.Parse(recObj["open_seats"].ToString()) : 0,
+                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString())
+                            ? int.Parse(recObj["open_seats"].ToString())
+                            : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
                         StartDate = recObj["start_date"].ToString(),
@@ -922,9 +928,9 @@ namespace PluginRJGWebsite.Plugin
                                 {
                                     Logger.Error(e.Message);
                                 }
-                            }    
+                            }
                         }
-                        
+
                         return "Could not delete record with no id.";
                     }
 
