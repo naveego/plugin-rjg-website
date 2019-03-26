@@ -2,13 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Newtonsoft.Json;
 using PluginRJGWebsite.DataContracts;
@@ -539,16 +535,16 @@ namespace PluginRJGWebsite.Plugin
                         JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
                             await response.Content.ReadAsStringAsync());
 
+                    var types = GetPropertyTypesFromRecords(recordsList);
                     var record = recordsList.First();
 
                     foreach (var recordKey in record.Keys)
                     {
-                        var value = record[recordKey];
                         var property = new Property
                         {
                             Id = recordKey,
                             Name = recordKey,
-                            Type = GetPropertyTypeFromValue(value),
+                            Type = types[recordKey],
                             IsKey = recordKey == "id",
                             IsCreateCounter = recordKey.Contains("date_created"),
                             IsUpdateCounter = recordKey.Contains("date_modified"),
@@ -589,53 +585,83 @@ namespace PluginRJGWebsite.Plugin
         /// <summary>
         /// Gets the Naveego type from the provided RJG information
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="records"></param>
         /// <returns>The property type</returns>
-        private PropertyType GetPropertyTypeFromValue(object value)
+        private Dictionary<string,PropertyType> GetPropertyTypesFromRecords(List<Dictionary<string, object>> records)
         {
             try
             {
-                // try datetime
-                if (DateTime.TryParse(value.ToString(), out DateTime d))
+                // build up a dictionary of the count of each type for each property
+                var discoveredTypes = new Dictionary<string, Dictionary<PropertyType, int>>();
+
+                foreach (var record in records)
                 {
-                    return PropertyType.Date;
+                    foreach (var recordKey in record.Keys)
+                    {
+                        if (!discoveredTypes.ContainsKey(recordKey))
+                        {
+                            discoveredTypes.Add(recordKey, new Dictionary<PropertyType, int>
+                            {
+                                {PropertyType.Bool, 0},
+                                {PropertyType.Integer, 0},
+                                {PropertyType.Json, 0},
+                                {PropertyType.Datetime, 0},
+                                {PropertyType.String, 0}
+                            });
+                        }
+                        
+                        var value = record[recordKey];
+                        var type = value != null
+                            ? value.GetType().ToString().ToLower()
+                            : "null";
+
+                        if (type.Contains("null"))
+                        {
+                            continue;
+                        }
+                        
+                        if (type.Contains("boolean"))
+                        {
+                            discoveredTypes[recordKey][PropertyType.Bool]++;
+                        }
+                        else if (type.Contains("int"))
+                        {
+                            discoveredTypes[recordKey][PropertyType.Integer]++;
+                        }
+                        else if (type.Contains("json"))
+                        {
+                            discoveredTypes[recordKey][PropertyType.Json]++;
+                        }
+                        else
+                        {
+                            if (DateTime.TryParse(value.ToString(), out DateTime d))
+                            {
+                                discoveredTypes[recordKey][PropertyType.Datetime]++;
+                            }
+                            else
+                            {
+                                discoveredTypes[recordKey][PropertyType.String]++;
+                            }
+                        }
+                    }
+                }
+                
+                // return object
+                var outTypes = new Dictionary<string,PropertyType>();
+                
+                // get the most frequent type of each property
+                foreach (var typesDic in discoveredTypes)
+                {
+                    var type = typesDic.Value.First(x => x.Value == typesDic.Value.Values.Max()).Key;
+                    outTypes.Add(typesDic.Key, type);
                 }
 
-                // try int
-                if (Int32.TryParse(value.ToString(), out int i))
-                {
-                    return PropertyType.Integer;
-                }
-
-                // try float
-                if (float.TryParse(value.ToString(), out float f))
-                {
-                    return PropertyType.Float;
-                }
-
-                // try boolean
-                if (bool.TryParse(value.ToString(), out bool b))
-                {
-                    return PropertyType.Bool;
-                }
-
-                // try string
-                if (value is string)
-                {
-                    return PropertyType.String;
-                }
-
-                // try object or array
-                if (value is IEnumerable)
-                {
-                    return PropertyType.Json;
-                }
-
-                return PropertyType.String;
+                return outTypes;
             }
-            catch
+            catch (Exception e)
             {
-                return PropertyType.String;
+                Logger.Info(e.Message);
+                throw;
             }
         }
 
