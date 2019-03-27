@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Newtonsoft.Json;
@@ -491,12 +492,13 @@ namespace PluginRJGWebsite.Plugin
                     foreach (var fieldKey in fields.Keys)
                     {
                         var field = fields[fieldKey];
+                        var result = Regex.Split(field.FieldKey, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
 
-                        if (field.FieldKey.Split("_").Length > 1)
+                        if (result.Length > 1)
                         {
                             var property = new Property
                             {
-                                Id = field.FieldKey.Split("_")[1],
+                                Id = result[1],
                                 Name = field.Name,
                                 Type = GetPropertyTypeFromField(field),
                                 IsKey = false,
@@ -694,7 +696,9 @@ namespace PluginRJGWebsite.Plugin
 
                     foreach (var field in data)
                     {
-                        outData.Add(field.Key.Split("_")[1], field.Value);
+                        var result = Regex.Split(field.Key, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
+
+                        outData.Add(result.Length > 1 ? result[1] : field.Key, field.Value);
                     }
 
                     records.Add(outData);
@@ -702,8 +706,9 @@ namespace PluginRJGWebsite.Plugin
 
                 return records;
             }
-            catch
+            catch (Exception e)
             {
+                Logger.Error(e.Message);
                 Logger.Info($"No records for path {path}");
                 return records;
             }
