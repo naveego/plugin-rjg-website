@@ -22,7 +22,7 @@ namespace PluginRJGWebsite.Helper
         }
 
         /// <summary>
-        /// Get a token for the Zoho API
+        /// Get a token for the RJG Website API
         /// </summary>
         /// <returns></returns>
         public async Task<string> GetToken()
