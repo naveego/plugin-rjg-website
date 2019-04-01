@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -260,6 +261,10 @@ namespace PluginRJGWebsite.Plugin
                                     {
                                         Data = value
                                     };
+                                    break;
+                                case PropertyType.Datetime:
+                                    var date = DateTime.Parse(record[property.Id].ToString());
+                                    record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
                                     break;
                             }
                         }
@@ -856,8 +861,8 @@ namespace PluginRJGWebsite.Plugin
                             : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
-                        StartDate = recObj["start_date"].ToString(),
-                        EndDate = recObj["end_date"].ToString(),
+                        StartDate = DateTime.Parse(recObj["start_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        EndDate = DateTime.Parse(recObj["end_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
                         CourseSKU = recObj["course_sku"].ToString(),
                         Price = recObj["price"].ToString()
                     };
@@ -884,8 +889,8 @@ namespace PluginRJGWebsite.Plugin
                             : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
-                        StartDate = recObj["start_date"].ToString(),
-                        EndDate = recObj["end_date"].ToString(),
+                        StartDate = DateTime.Parse(recObj["start_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        EndDate = DateTime.Parse(recObj["end_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
                         SKU = recObj["sku"].ToString(),
                         CourseSKU = recObj["course_sku"].ToString(),
                         Price = recObj["price"].ToString()
