@@ -624,7 +624,7 @@ namespace PluginRJGWebsite.Plugin
 
                         if (value == null)
                             continue;
-                        
+
                         switch (value)
                         {
                             case bool _:
@@ -649,6 +649,7 @@ namespace PluginRJGWebsite.Plugin
                                 {
                                     discoveredTypes[recordKey][PropertyType.String]++;
                                 }
+
                                 break;
                             }
                         }
@@ -813,23 +814,10 @@ namespace PluginRJGWebsite.Plugin
                             Logger.Info("Modified 1 record.");
                             return "";
                         }
-                        else
-                        {
-                            // record does not exist, create it
-                            var postObj = GetPostObject(endpoint, recObj);
-
-                            var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
-                                "application/json");
-
-                            var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
-                            response.EnsureSuccessStatusCode();
-
-                            Logger.Info("Created 1 record.");
-                            return "";
-                        }
                     }
 
-                    return "Key 'id' not found on requested record to write back.";
+                    // record does not exist, create it
+                    return await InsertRecord(endpoint, recObj);
                 }
                 catch (Exception e)
                 {
@@ -841,6 +829,33 @@ namespace PluginRJGWebsite.Plugin
             // code for modifying forms would go here if needed but currently is not needed
 
             return "Write backs are only supported for Classes.";
+        }
+
+        /// <summary>
+        /// Inserts a record to the RJG Website
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="recObj"></param>
+        /// <returns></returns>
+        private async Task<string> InsertRecord(Endpoint endpoint, Dictionary<string, object> recObj)
+        {
+            try
+            {
+                var postObj = GetPostObject(endpoint, recObj);
+
+                var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
+                    "application/json");
+
+                var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
+                response.EnsureSuccessStatusCode();
+
+                Logger.Info("Created 1 record.");
+                return "";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         /// <summary>
@@ -861,8 +876,10 @@ namespace PluginRJGWebsite.Plugin
                             : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
-                        StartDate = DateTime.Parse(recObj["start_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        EndDate = DateTime.Parse(recObj["end_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        StartDate = DateTime.Parse(recObj["start_date"].ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        EndDate = DateTime.Parse(recObj["end_date"].ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
                         CourseSKU = recObj["course_sku"].ToString(),
                         Price = recObj["price"].ToString()
                     };
@@ -889,8 +906,10 @@ namespace PluginRJGWebsite.Plugin
                             : 0,
                         Language = recObj["language"].ToString(),
                         Location = recObj["location"].ToString(),
-                        StartDate = DateTime.Parse(recObj["start_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        EndDate = DateTime.Parse(recObj["end_date"].ToString()).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        StartDate = DateTime.Parse(recObj["start_date"].ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
+                        EndDate = DateTime.Parse(recObj["end_date"].ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
                         SKU = recObj["sku"].ToString(),
                         CourseSKU = recObj["course_sku"].ToString(),
                         Price = recObj["price"].ToString()
@@ -944,7 +963,7 @@ namespace PluginRJGWebsite.Plugin
                         return "Could not delete record with no id.";
                     }
 
-                    return "Key 'id' not found on requested record to write back.";
+                    return "Key 'id' not found on requested record to delete.";
                 }
                 catch (Exception e)
                 {
