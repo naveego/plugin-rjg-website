@@ -730,18 +730,39 @@ namespace PluginRJGWebsite.Plugin
             var records = new List<Dictionary<string, object>>();
             try
             {
-                var response = await _client.GetAsync(path);
-                response.EnsureSuccessStatusCode();
+                int page = 1;
+                bool morePages = true;
 
-                var recordsResponse =
-                    JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
-                        await response.Content.ReadAsStringAsync());
-
-                foreach (var record in recordsResponse)
+                do
                 {
-                    records.Add(record);
-                }
+                    var response = await _client.GetAsync($"{path}?page={page}");
+                    response.EnsureSuccessStatusCode();
 
+                    var linkHeader = response.Headers.GetValues("Link").FirstOrDefault();
+                    if (linkHeader != null)
+                    {
+                        var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
+
+                        if (result.Length > 0)
+                        {
+                            page++;
+                        }
+                        else
+                        {
+                            morePages = false;
+                        }
+                    }
+                
+                    var recordsResponse =
+                        JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
+                            await response.Content.ReadAsStringAsync());
+
+                    foreach (var record in recordsResponse)
+                    {
+                        records.Add(record);
+                    }
+                } while (morePages);
+                
                 return records;
             }
             catch
@@ -848,12 +869,15 @@ namespace PluginRJGWebsite.Plugin
 
                 var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
                 response.EnsureSuccessStatusCode();
+                
+                Logger.Info(await response.Content.ReadAsStringAsync());
 
                 Logger.Info("Created 1 record.");
                 return "";
             }
             catch (Exception e)
             {
+                Logger.Error(e.Message);
                 return e.Message;
             }
         }
@@ -869,19 +893,54 @@ namespace PluginRJGWebsite.Plugin
             switch (endpoint.Name)
             {
                 case "Classes":
+                    if (!recObj.TryGetValue("open_seats", out var openSeats))
+                    {
+                        openSeats = 0;
+                    }
+                    if (!recObj.TryGetValue("language", out var language))
+                    {
+                        language = "";
+                    }
+                    if (!recObj.TryGetValue("location", out var location))
+                    {
+                        location = "";
+                    }
+                    if (!recObj.TryGetValue("start_date", out var startDate))
+                    {
+                        startDate = "";
+                    }
+                    else
+                    {
+                        startDate = DateTime.Parse(startDate.ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                    }
+                    if (!recObj.TryGetValue("end_date", out var endDate))
+                    {
+                        endDate = "";
+                    }
+                    else
+                    {
+                        endDate = DateTime.Parse(endDate.ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                    }
+                    if (!recObj.TryGetValue("course_sku", out var courseSku))
+                    {
+                        courseSku = "";
+                    }
+                    if (!recObj.TryGetValue("price", out var price))
+                    {
+                        price = "";
+                    }
+                    
                     return new ClassesPatchObject
                     {
-                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString())
-                            ? int.Parse(recObj["open_seats"].ToString())
-                            : 0,
-                        Language = recObj["language"].ToString(),
-                        Location = recObj["location"].ToString(),
-                        StartDate = DateTime.Parse(recObj["start_date"].ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        EndDate = DateTime.Parse(recObj["end_date"].ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        CourseSKU = recObj["course_sku"].ToString(),
-                        Price = recObj["price"].ToString()
+                        OpenSeats = int.Parse(openSeats.ToString()),
+                        Language = language.ToString(),
+                        Location = location.ToString(),
+                        StartDate = startDate.ToString(),
+                        EndDate = endDate.ToString(),
+                        CourseSKU = courseSku.ToString(),
+                        Price = price.ToString()
                     };
                 default:
                     return new object();
@@ -899,20 +958,59 @@ namespace PluginRJGWebsite.Plugin
             switch (endpoint.Name)
             {
                 case "Classes":
+                    if (!recObj.TryGetValue("open_seats", out var openSeats))
+                    {
+                        openSeats = 0;
+                    }
+                    if (!recObj.TryGetValue("language", out var language))
+                    {
+                        language = "";
+                    }
+                    if (!recObj.TryGetValue("location", out var location))
+                    {
+                        location = "";
+                    }
+                    if (!recObj.TryGetValue("start_date", out var startDate))
+                    {
+                        startDate = "";
+                    }
+                    else
+                    {
+                        startDate = DateTime.Parse(startDate.ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                    }
+                    if (!recObj.TryGetValue("end_date", out var endDate))
+                    {
+                        endDate = "";
+                    }
+                    else
+                    {
+                        endDate = DateTime.Parse(endDate.ToString())
+                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                    }
+                    if (!recObj.TryGetValue("sku", out var sku))
+                    {
+                        sku = "";
+                    }
+                    if (!recObj.TryGetValue("course_sku", out var courseSku))
+                    {
+                        courseSku = "";
+                    }
+                    if (!recObj.TryGetValue("price", out var price))
+                    {
+                        price = "";
+                    }
+                    
                     return new ClassesPostObject
                     {
-                        OpenSeats = String.IsNullOrEmpty(recObj["open_seats"].ToString())
-                            ? int.Parse(recObj["open_seats"].ToString())
-                            : 0,
-                        Language = recObj["language"].ToString(),
-                        Location = recObj["location"].ToString(),
-                        StartDate = DateTime.Parse(recObj["start_date"].ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        EndDate = DateTime.Parse(recObj["end_date"].ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture),
-                        SKU = recObj["sku"].ToString(),
-                        CourseSKU = recObj["course_sku"].ToString(),
-                        Price = recObj["price"].ToString()
+                        OpenSeats = int.Parse(openSeats.ToString()),
+                        Language = language.ToString(),
+                        Location = location.ToString(),
+                        StartDate = startDate.ToString(),
+                        EndDate = endDate.ToString(),
+                        SKU = sku.ToString(),
+                        CourseSKU = courseSku.ToString(),
+                        Price = price.ToString()
                     };
                 default:
                     return new object();
