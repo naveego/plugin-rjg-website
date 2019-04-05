@@ -259,12 +259,17 @@ namespace PluginRJGWebsite.Plugin
                                     value = record[property.Id];
                                     record[property.Id] = new ReadRecordObject
                                     {
-                                        Data = value
+                                        Data = value ?? new Dictionary<string,object>()
                                     };
                                     break;
                                 case PropertyType.Datetime:
-                                    var date = DateTime.Parse(record[property.Id].ToString());
-                                    record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
+                                    if (record[property.Id] != null)
+                                    {
+                                        if (DateTime.TryParse(record[property.Id].ToString(), out var date))
+                                        {
+                                            record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);               
+                                        }
+                                    }
                                     break;
                             }
                         }
@@ -293,6 +298,8 @@ namespace PluginRJGWebsite.Plugin
             catch (Exception e)
             {
                 Logger.Error(e.Message);
+                Logger.Error(e.Source);
+                Logger.Error(e.StackTrace);
                 throw;
             }
         }
@@ -738,19 +745,30 @@ namespace PluginRJGWebsite.Plugin
                     var response = await _client.GetAsync($"{path}?page={page}");
                     response.EnsureSuccessStatusCode();
 
-                    var linkHeader = response.Headers.GetValues("Link").FirstOrDefault();
-                    if (linkHeader != null)
+                    if (response.Headers.TryGetValues("Link", out var linkHeaders))
                     {
-                        var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
-
-                        if (result.Length > 0)
+                        var linkHeader = linkHeaders.FirstOrDefault();
+                        if (linkHeader != null)
                         {
-                            page++;
+                            var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
+                        
+                            if (result.Length > 1)
+                            {
+                                page++;
+                            }
+                            else
+                            {
+                                morePages = false;
+                            }
                         }
                         else
                         {
                             morePages = false;
                         }
+                    }
+                    else
+                    {
+                        morePages = false;
                     }
                 
                     var recordsResponse =
