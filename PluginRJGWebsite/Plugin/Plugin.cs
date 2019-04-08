@@ -911,43 +911,125 @@ namespace PluginRJGWebsite.Plugin
             switch (endpoint.Name)
             {
                 case "Classes":
-                    if (!recObj.TryGetValue("open_seats", out var openSeats))
+                    if (recObj.TryGetValue("open_seats", out var openSeats))
+                    {
+                        if (openSeats == null)
+                        {
+                            openSeats = 0;
+                        }
+                    }
+                    else
                     {
                         openSeats = 0;
                     }
-                    if (!recObj.TryGetValue("language", out var language))
+                    if (recObj.TryGetValue("language", out var language))
+                    {
+                        if (language == null)
+                        {
+                            language = "";
+                        }
+                    }
+                    else
                     {
                         language = "";
                     }
-                    if (!recObj.TryGetValue("location", out var location))
+                    if (recObj.TryGetValue("location_name", out var location))
+                    {
+                        if (location == null)
+                        {
+                            location = "";
+                        }
+                    }
+                    else
                     {
                         location = "";
                     }
-                    if (!recObj.TryGetValue("start_date", out var startDate))
+                    if (recObj.TryGetValue("location_city", out var city))
+                    {
+                        if (city == null)
+                        {
+                            city = "";
+                        }
+                    }
+                    else
+                    {
+                        city = "";
+                    }
+                    if (recObj.TryGetValue("location_state", out var state))
+                    {
+                        if (state == null)
+                        {
+                            state = "";
+                        }
+                    }
+                    else
+                    {
+                        state = "";
+                    }
+                    if (recObj.TryGetValue("start_date", out var startDate))
+                    {
+                        if (startDate != null)
+                        {
+                            startDate = DateTime.Parse(startDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                        }
+                        else
+                        {
+                            startDate = "";
+                        }
+                    }
+                    else
                     {
                         startDate = "";
                     }
-                    else
+                    if (recObj.TryGetValue("end_date", out var endDate))
                     {
-                        startDate = DateTime.Parse(startDate.ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        if (endDate != null)
+                        {
+                            endDate = DateTime.Parse(endDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                        }
+                        else
+                        {
+                            endDate = "";
+                        }
                     }
-                    if (!recObj.TryGetValue("end_date", out var endDate))
+                    else
                     {
                         endDate = "";
                     }
-                    else
+                    if (recObj.TryGetValue("course_sku", out var courseSku))
                     {
-                        endDate = DateTime.Parse(endDate.ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        if (courseSku == null)
+                        {
+                            courseSku = "";
+                        }
                     }
-                    if (!recObj.TryGetValue("course_sku", out var courseSku))
+                    else
                     {
                         courseSku = "";
                     }
-                    if (!recObj.TryGetValue("price", out var price))
+                    if (recObj.TryGetValue("price", out var price))
+                    {
+                        if (price == null)
+                        {
+                            price = "";
+                        }
+                    }
+                    else
                     {
                         price = "";
+                    }
+                    if (recObj.TryGetValue("visible", out var visible))
+                    {
+                        if (visible == null)
+                        {
+                            visible = true;
+                        }
+                    }
+                    else
+                    {
+                        visible = true;
                     }
                     
                     return new ClassesPatchObject
@@ -955,10 +1037,13 @@ namespace PluginRJGWebsite.Plugin
                         OpenSeats = int.Parse(openSeats.ToString()),
                         Language = language.ToString(),
                         Location = location.ToString(),
+                        City = city.ToString(),
+                        State = state.ToString(),
                         StartDate = startDate.ToString(),
                         EndDate = endDate.ToString(),
                         CourseSKU = courseSku.ToString(),
-                        Price = price.ToString()
+                        Price = price.ToString(),
+                        Visible = bool.Parse(visible.ToString())
                     };
                 default:
                     return new object();
@@ -976,47 +1061,136 @@ namespace PluginRJGWebsite.Plugin
             switch (endpoint.Name)
             {
                 case "Classes":
-                    if (!recObj.TryGetValue("open_seats", out var openSeats))
+                    if (recObj.TryGetValue("open_seats", out var openSeats))
+                    {
+                        if (openSeats == null)
+                        {
+                            openSeats = 0;
+                        }
+                    }
+                    else
                     {
                         openSeats = 0;
                     }
-                    if (!recObj.TryGetValue("language", out var language))
+                    if (recObj.TryGetValue("language", out var language))
+                    {
+                        if (language == null)
+                        {
+                            language = "";
+                        }
+                    }
+                    else
                     {
                         language = "";
                     }
-                    if (!recObj.TryGetValue("location", out var location))
+                    if (recObj.TryGetValue("location_name", out var location))
+                    {
+                        if (location == null)
+                        {
+                            location = "";
+                        }
+                    }
+                    else
                     {
                         location = "";
                     }
-                    if (!recObj.TryGetValue("start_date", out var startDate))
+                    if (recObj.TryGetValue("location_city", out var city))
+                    {
+                        if (city == null)
+                        {
+                            city = "";
+                        }
+                    }
+                    else
+                    {
+                        city = "";
+                    }
+                    if (recObj.TryGetValue("location_state", out var state))
+                    {
+                        if (state == null)
+                        {
+                            state = "";
+                        }
+                    }
+                    else
+                    {
+                        state = "";
+                    }
+                    if (recObj.TryGetValue("start_date", out var startDate))
+                    {
+                        if (startDate != null)
+                        {
+                            startDate = DateTime.Parse(startDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                        }
+                        else
+                        {
+                            startDate = "";
+                        }
+                    }
+                    else
                     {
                         startDate = "";
                     }
-                    else
+                    if (recObj.TryGetValue("end_date", out var endDate))
                     {
-                        startDate = DateTime.Parse(startDate.ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        if (endDate != null)
+                        {
+                            endDate = DateTime.Parse(endDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                        }
+                        else
+                        {
+                            endDate = "";
+                        }
                     }
-                    if (!recObj.TryGetValue("end_date", out var endDate))
+                    else
                     {
                         endDate = "";
                     }
-                    else
+                    if (recObj.TryGetValue("sku", out var sku))
                     {
-                        endDate = DateTime.Parse(endDate.ToString())
-                            .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        if (sku == null)
+                        {
+                            sku = "";
+                        }
                     }
-                    if (!recObj.TryGetValue("sku", out var sku))
+                    else
                     {
                         sku = "";
                     }
-                    if (!recObj.TryGetValue("course_sku", out var courseSku))
+                    if (recObj.TryGetValue("course_sku", out var courseSku))
+                    {
+                        if (courseSku == null)
+                        {
+                            courseSku = "";
+                        }
+                    }
+                    else
                     {
                         courseSku = "";
                     }
-                    if (!recObj.TryGetValue("price", out var price))
+                    if (recObj.TryGetValue("price", out var price))
+                    {
+                        if (price == null)
+                        {
+                            price = "";
+                        }
+                    }
+                    else
                     {
                         price = "";
+                    }
+                    if (recObj.TryGetValue("visible", out var visible))
+                    {
+                        if (visible == null)
+                        {
+                            visible = true;
+                        }
+                    }
+                    else
+                    {
+                        visible = true;
                     }
                     
                     return new ClassesPostObject
@@ -1024,11 +1198,14 @@ namespace PluginRJGWebsite.Plugin
                         OpenSeats = int.Parse(openSeats.ToString()),
                         Language = language.ToString(),
                         Location = location.ToString(),
+                        City = city.ToString(),
+                        State = state.ToString(),
                         StartDate = startDate.ToString(),
                         EndDate = endDate.ToString(),
                         SKU = sku.ToString(),
                         CourseSKU = courseSku.ToString(),
-                        Price = price.ToString()
+                        Price = price.ToString(),
+                        Visible = bool.Parse(visible.ToString())
                     };
                 default:
                     return new object();
