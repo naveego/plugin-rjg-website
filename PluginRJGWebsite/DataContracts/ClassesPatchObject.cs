@@ -10,8 +10,14 @@ namespace PluginRJGWebsite.DataContracts
         [JsonProperty("language")]
         public string Language { get; set; }
         
-        [JsonProperty("location")]
+        [JsonProperty("location_name")]
         public string Location { get; set; }
+        
+        [JsonProperty("location_city")]
+        public string City { get; set; }
+        
+        [JsonProperty("location_state")]
+        public string State { get; set; }
         
         [JsonProperty("start_date")]
         public string StartDate { get; set; }
@@ -24,5 +30,8 @@ namespace PluginRJGWebsite.DataContracts
         
         [JsonProperty("price")]
         public string Price { get; set; }
+        
+        [JsonProperty("visible")]
+        public bool Visible { get; set; }
     }
 }
