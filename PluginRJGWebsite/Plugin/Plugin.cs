@@ -259,7 +259,7 @@ namespace PluginRJGWebsite.Plugin
                                     value = record[property.Id];
                                     record[property.Id] = new ReadRecordObject
                                     {
-                                        Data = value ?? new Dictionary<string,object>()
+                                        Data = value ?? new Dictionary<string, object>()
                                     };
                                     break;
                                 case PropertyType.Datetime:
@@ -267,9 +267,10 @@ namespace PluginRJGWebsite.Plugin
                                     {
                                         if (DateTime.TryParse(record[property.Id].ToString(), out var date))
                                         {
-                                            record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);               
+                                            record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
                                         }
                                     }
+
                                     break;
                             }
                         }
@@ -445,6 +446,151 @@ namespace PluginRJGWebsite.Plugin
                 }),
                 DataFlowDirection = endpoint.DataFlowDirection
             };
+
+            // static write schema for classes
+            if (endpoint.Name == "Classes - Write")
+            {
+                var properties = new List<Property>
+                {
+                    new Property
+                    {
+                        Id = "open_seats",
+                        Name = "open_seats",
+                        Type = PropertyType.Integer,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "int",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "language",
+                        Name = "language",
+                        Type = PropertyType.String,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "location_name",
+                        Name = "location_name",
+                        Type = PropertyType.String,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "location_city",
+                        Name = "location_city",
+                        Type = PropertyType.String,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "location_state",
+                        Name = "location_state",
+                        Type = PropertyType.String,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "location_state_province_county",
+                        Name = "location_state_province_county",
+                        Type = PropertyType.String,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "start_date",
+                        Name = "start_date",
+                        Type = PropertyType.Datetime,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "date",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "end_date",
+                        Name = "end_date",
+                        Type = PropertyType.Datetime,
+                        IsKey = false,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "date",
+                        IsNullable = true
+                    },
+                    new Property
+                    {
+                        Id = "sku",
+                        Name = "sku",
+                        Type = PropertyType.String,
+                        IsKey = true,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = false
+                    },
+                    new Property
+                    {
+                        Id = "course_sku",
+                        Name = "course_sku",
+                        Type = PropertyType.String,
+                        IsKey = true,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = false
+                    },
+                    new Property
+                    {
+                        Id = "price",
+                        Name = "price",
+                        Type = PropertyType.String,
+                        IsKey = true,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "string",
+                        IsNullable = false
+                    },
+                    new Property
+                    {
+                        Id = "visible",
+                        Name = "visible",
+                        Type = PropertyType.Bool,
+                        IsKey = true,
+                        IsCreateCounter = false,
+                        IsUpdateCounter = false,
+                        TypeAtSource = "boolean",
+                        IsNullable = false
+                    },
+                };
+
+                schema.Properties.AddRange(properties);
+
+                Logger.Debug($"Added schema for: {endpoint.Name}");
+                return schema;
+            }
 
             try
             {
@@ -751,7 +897,7 @@ namespace PluginRJGWebsite.Plugin
                         if (linkHeader != null)
                         {
                             var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
-                        
+
                             if (result.Length > 1)
                             {
                                 page++;
@@ -770,7 +916,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         morePages = false;
                     }
-                
+
                     var recordsResponse =
                         JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
                             await response.Content.ReadAsStringAsync());
@@ -780,7 +926,7 @@ namespace PluginRJGWebsite.Plugin
                         records.Add(record);
                     }
                 } while (morePages);
-                
+
                 return records;
             }
             catch
@@ -805,46 +951,32 @@ namespace PluginRJGWebsite.Plugin
             {
                 try
                 {
-                    // check if source has newer record than write back record
                     recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
 
-                    if (recObj.ContainsKey("id"))
+                    var postObj = GetPostObject(endpoint, recObj);
+
+                    var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
+                        "application/json");
+
+                    var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
+
+                    // add checking for if patch needs to happen
+                    if (!response.IsSuccessStatusCode)
                     {
-                        if (recObj["id"] != null)
+                        var errorResponse =
+                            JsonConvert.DeserializeObject<ErrorResponse>(await response.Content.ReadAsStringAsync());
+                        
+                        if (errorResponse.Code == "product_invalid_sku" && errorResponse.Message.Contains("duplicated"))
                         {
                             // record already exists, check date then patch it
-                            var id = recObj["id"];
-
+                            var id = errorResponse.Data["resource_id"];
+                            
                             // build and send request
                             var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
 
-                            var response = await _client.GetAsync(path);
-                            response.EnsureSuccessStatusCode();
-
-                            var srcObj =
-                                JsonConvert.DeserializeObject<Dictionary<string, object>>(
-                                    await response.Content.ReadAsStringAsync());
-
-                            // get modified key from schema
-                            var modifiedKey = schema.Properties.First(x => x.IsUpdateCounter);
-
-                            if (recObj.ContainsKey(modifiedKey.Id) && srcObj.ContainsKey(modifiedKey.Id))
-                            {
-                                if (recObj[modifiedKey.Id] != null && srcObj[modifiedKey.Id] != null)
-                                {
-                                    // if source is newer than request exit
-                                    if (DateTime.Parse(recObj[modifiedKey.Id].ToString()) <=
-                                        DateTime.Parse(srcObj[modifiedKey.Id].ToString()))
-                                    {
-                                        Logger.Info($"Source is newer for record {record.DataJson}");
-                                        return "source system is newer than requested write back";
-                                    }
-                                }
-                            }
-
                             var patchObj = GetPatchObject(endpoint, recObj);
 
-                            var content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
+                            content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
                                 "application/json");
 
                             response = await _client.PatchAsync(path, content);
@@ -855,8 +987,8 @@ namespace PluginRJGWebsite.Plugin
                         }
                     }
 
-                    // record does not exist, create it
-                    return await InsertRecord(endpoint, recObj);
+                    Logger.Info("Created 1 record.");
+                    return "";
                 }
                 catch (Exception e)
                 {
@@ -868,36 +1000,6 @@ namespace PluginRJGWebsite.Plugin
             // code for modifying forms would go here if needed but currently is not needed
 
             return "Write backs are only supported for Classes.";
-        }
-
-        /// <summary>
-        /// Inserts a record to the RJG Website
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="recObj"></param>
-        /// <returns></returns>
-        private async Task<string> InsertRecord(Endpoint endpoint, Dictionary<string, object> recObj)
-        {
-            try
-            {
-                var postObj = GetPostObject(endpoint, recObj);
-
-                var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
-                    "application/json");
-
-                var response = await _client.PostAsync(endpoint.ReadPaths.First(), content);
-                response.EnsureSuccessStatusCode();
-                
-                Logger.Info(await response.Content.ReadAsStringAsync());
-
-                Logger.Info("Created 1 record.");
-                return "";
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e.Message);
-                return e.Message;
-            }
         }
 
         /// <summary>
@@ -922,6 +1024,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         openSeats = 0;
                     }
+
                     if (recObj.TryGetValue("language", out var language))
                     {
                         if (language == null)
@@ -933,6 +1036,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         language = "";
                     }
+
                     if (recObj.TryGetValue("location_name", out var location))
                     {
                         if (location == null)
@@ -944,6 +1048,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         location = "";
                     }
+
                     if (recObj.TryGetValue("location_city", out var city))
                     {
                         if (city == null)
@@ -955,23 +1060,45 @@ namespace PluginRJGWebsite.Plugin
                     {
                         city = "";
                     }
+
                     if (recObj.TryGetValue("location_state", out var state))
                     {
-                        if (state == null)
+                        if (state.ToString() == "null")
                         {
-                            state = "";
+                            if (recObj.TryGetValue("location_state_province_county", out state))
+                            {
+                                if (state.ToString() == "null")
+                                {
+                                    state = "";
+                                }
+                            }
+                            else
+                            {
+                                state = "";
+                            }
                         }
                     }
                     else
                     {
-                        state = "";
+                        if (recObj.TryGetValue("location_state_province_county", out state))
+                        {
+                            if (state.ToString() == "null")
+                            {
+                                state = "";
+                            }
+                        }
+                        else
+                        {
+                            state = "";
+                        }
                     }
+
                     if (recObj.TryGetValue("start_date", out var startDate))
                     {
                         if (startDate != null)
                         {
                             startDate = DateTime.Parse(startDate.ToString())
-                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
@@ -982,12 +1109,13 @@ namespace PluginRJGWebsite.Plugin
                     {
                         startDate = "";
                     }
+
                     if (recObj.TryGetValue("end_date", out var endDate))
                     {
                         if (endDate != null)
                         {
                             endDate = DateTime.Parse(endDate.ToString())
-                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
@@ -998,6 +1126,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         endDate = "";
                     }
+
                     if (recObj.TryGetValue("course_sku", out var courseSku))
                     {
                         if (courseSku == null)
@@ -1009,6 +1138,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         courseSku = "";
                     }
+
                     if (recObj.TryGetValue("price", out var price))
                     {
                         if (price == null)
@@ -1020,6 +1150,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         price = "";
                     }
+
                     if (recObj.TryGetValue("visible", out var visible))
                     {
                         if (visible == null)
@@ -1031,7 +1162,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         visible = true;
                     }
-                    
+
                     return new ClassesPatchObject
                     {
                         OpenSeats = int.Parse(openSeats.ToString()),
@@ -1060,7 +1191,7 @@ namespace PluginRJGWebsite.Plugin
         {
             switch (endpoint.Name)
             {
-                case "Classes":
+                case "Classes - Write":
                     if (recObj.TryGetValue("open_seats", out var openSeats))
                     {
                         if (openSeats == null)
@@ -1072,6 +1203,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         openSeats = 0;
                     }
+
                     if (recObj.TryGetValue("language", out var language))
                     {
                         if (language == null)
@@ -1083,6 +1215,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         language = "";
                     }
+
                     if (recObj.TryGetValue("location_name", out var location))
                     {
                         if (location == null)
@@ -1094,6 +1227,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         location = "";
                     }
+
                     if (recObj.TryGetValue("location_city", out var city))
                     {
                         if (city == null)
@@ -1105,23 +1239,45 @@ namespace PluginRJGWebsite.Plugin
                     {
                         city = "";
                     }
+
                     if (recObj.TryGetValue("location_state", out var state))
                     {
-                        if (state == null)
+                        if (state.ToString() == "null")
                         {
-                            state = "";
+                            if (recObj.TryGetValue("location_state_province_county", out state))
+                            {
+                                if (state.ToString() == "null")
+                                {
+                                    state = "";
+                                }
+                            }
+                            else
+                            {
+                                state = "";
+                            }
                         }
                     }
                     else
                     {
-                        state = "";
+                        if (recObj.TryGetValue("location_state_province_county", out state))
+                        {
+                            if (state.ToString() == "null")
+                            {
+                                state = "";
+                            }
+                        }
+                        else
+                        {
+                            state = "";
+                        }
                     }
+
                     if (recObj.TryGetValue("start_date", out var startDate))
                     {
                         if (startDate != null)
                         {
                             startDate = DateTime.Parse(startDate.ToString())
-                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
@@ -1132,12 +1288,13 @@ namespace PluginRJGWebsite.Plugin
                     {
                         startDate = "";
                     }
+
                     if (recObj.TryGetValue("end_date", out var endDate))
                     {
                         if (endDate != null)
                         {
                             endDate = DateTime.Parse(endDate.ToString())
-                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture); 
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
@@ -1148,6 +1305,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         endDate = "";
                     }
+
                     if (recObj.TryGetValue("sku", out var sku))
                     {
                         if (sku == null)
@@ -1159,6 +1317,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         sku = "";
                     }
+
                     if (recObj.TryGetValue("course_sku", out var courseSku))
                     {
                         if (courseSku == null)
@@ -1170,6 +1329,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         courseSku = "";
                     }
+
                     if (recObj.TryGetValue("price", out var price))
                     {
                         if (price == null)
@@ -1181,6 +1341,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         price = "";
                     }
+
                     if (recObj.TryGetValue("visible", out var visible))
                     {
                         if (visible == null)
@@ -1192,7 +1353,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         visible = true;
                     }
-                    
+
                     return new ClassesPostObject
                     {
                         OpenSeats = int.Parse(openSeats.ToString()),
