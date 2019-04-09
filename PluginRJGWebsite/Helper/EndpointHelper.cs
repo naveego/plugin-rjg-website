@@ -25,13 +25,23 @@ namespace PluginRJGWebsite.Helper
                 },
                 new Endpoint
                 {
-                    Name = "Classes",
+                    Name = "Classes - Read",
                     MetaDataPath = "",
                     ReadPaths = new List<string>
                     {
                         "/rjg/v1/classes"
                     },
-                    DataFlowDirection = Schema.Types.DataFlowDirection.ReadWrite
+                    DataFlowDirection = Schema.Types.DataFlowDirection.Read
+                },
+                new Endpoint
+                {
+                    Name = "Classes - Write",
+                    MetaDataPath = "",
+                    ReadPaths = new List<string>
+                    {
+                        "/rjg/v1/classes"
+                    },
+                    DataFlowDirection = Schema.Types.DataFlowDirection.Write
                 },
                 new Endpoint
                 {

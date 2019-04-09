@@ -175,7 +175,7 @@ namespace PluginRJGWebsiteTest.Plugin
 
             // assert
             Assert.IsType<DiscoverSchemasResponse>(response);
-            Assert.Equal(7, response.Schemas.Count);
+            Assert.Equal(8, response.Schemas.Count);
 
             // cleanup
             await channel.ShutdownAsync();
@@ -372,7 +372,7 @@ namespace PluginRJGWebsiteTest.Plugin
             {
                 Schema = new Schema
                 {
-                    Id = "Classes",
+                    Id = "Classes - Write",
                     Properties =
                     {
                         new Property
