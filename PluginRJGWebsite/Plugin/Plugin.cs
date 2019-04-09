@@ -1012,7 +1012,7 @@ namespace PluginRJGWebsite.Plugin
         {
             switch (endpoint.Name)
             {
-                case "Classes":
+                case "Classes - Write":
                     if (recObj.TryGetValue("open_seats", out var openSeats))
                     {
                         if (openSeats == null)
