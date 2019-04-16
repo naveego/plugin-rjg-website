@@ -273,7 +273,26 @@ namespace PluginRJGWebsite.Plugin
 
                                     break;
                             }
+                            
+                            if (endpoint.Name == "Assessments")
+                            {
+                                var metric = Regex.Split(property.Id, "-metric-", RegexOptions.IgnoreCase);
+                                
+                                if (metric.Length > 1)
+                                {
+                                    if (!String.IsNullOrEmpty(record[property.Id].ToString()))
+                                    {
+                                        var stdId = property.Id.Replace("metric-", "");
+                                        record[stdId] = record[property.Id];
+                                    }
+                                }
+                            }
                         }
+                    }
+
+                    if (endpoint.Name == "Assessments")
+                    {
+                        record.Add("course_assessment_name", record["id"]);
                     }
 
                     var recordOutput = new Record
@@ -647,9 +666,27 @@ namespace PluginRJGWebsite.Plugin
 
                     schema.Properties.Add(update);
 
+                    if (endpoint.Name == "Assessments")
+                    {
+                        var courseName = new Property
+                        {
+                            Id = "course_assessment_name",
+                            Name = "Course Assessment Name",
+                            Type = PropertyType.String,
+                            IsKey = false,
+                            IsCreateCounter = false,
+                            IsUpdateCounter = false,
+                            TypeAtSource = "id",
+                            IsNullable = false
+                        };
+
+                        schema.Properties.Add(courseName);
+                    }
+
                     foreach (var fieldKey in fields.Keys)
                     {
                         var field = fields[fieldKey];
+                        
                         var result = Regex.Split(field.FieldKey, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
 
                         if (result.Length > 1)
