@@ -1003,6 +1003,8 @@ namespace PluginRJGWebsite.Plugin
                         var errorResponse =
                             JsonConvert.DeserializeObject<ErrorResponse>(await response.Content.ReadAsStringAsync());
                         
+                        Logger.Info($"Insert response: {await response.Content.ReadAsStringAsync()}");
+                        
                         if (errorResponse.Code == "product_invalid_sku" && errorResponse.Message.Contains("duplicated"))
                         {
                             // record already exists, check date then patch it
@@ -1012,11 +1014,15 @@ namespace PluginRJGWebsite.Plugin
                             var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
 
                             var patchObj = GetPatchObject(endpoint, recObj);
+                            
+                            Logger.Info($"Patch Obj: {JsonConvert.SerializeObject(patchObj, Formatting.Indented)}");
 
                             content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
                                 "application/json");
 
                             response = await _client.PatchAsync(path, content);
+                            Logger.Info($"Patch response: {await response.Content.ReadAsStringAsync()}");
+                            Logger.Info(await response.Content.ReadAsStringAsync());
                             response.EnsureSuccessStatusCode();
 
                             Logger.Info("Modified 1 record.");
