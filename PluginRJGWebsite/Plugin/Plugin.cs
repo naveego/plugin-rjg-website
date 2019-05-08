@@ -295,6 +295,11 @@ namespace PluginRJGWebsite.Plugin
                         record.Add("course_assessment_name", record["id"]);
                     }
 
+                    if (endpoint.Name == "Registrations")
+                    {
+                        record.Add("WordpressID", record["id"]);
+                    }
+
                     var recordOutput = new Record
                     {
                         Action = Record.Types.Action.Upsert,
@@ -749,6 +754,23 @@ namespace PluginRJGWebsite.Plugin
                             IsUpdateCounter = recordKey.Contains("date_modified"),
                             TypeAtSource = "",
                             IsNullable = true
+                        };
+
+                        schema.Properties.Add(property);
+                    }
+
+                    if (endpoint.Name == "Registrations")
+                    {
+                        var property = new Property
+                        {
+                            Id = "WordpressID",
+                            Name = "WordpressID",
+                            Type = PropertyType.Integer,
+                            IsKey = false,
+                            IsCreateCounter = false,
+                            IsUpdateCounter = false,
+                            TypeAtSource = "id",
+                            IsNullable = false
                         };
 
                         schema.Properties.Add(property);
