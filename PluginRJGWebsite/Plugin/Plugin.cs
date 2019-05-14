@@ -823,12 +823,12 @@ namespace PluginRJGWebsite.Plugin
                         {
                             discoveredTypes.Add(recordKey, new Dictionary<PropertyType, int>
                             {
+                                {PropertyType.String, 0},
                                 {PropertyType.Bool, 0},
                                 {PropertyType.Integer, 0},
                                 {PropertyType.Float, 0},
                                 {PropertyType.Json, 0},
-                                {PropertyType.Datetime, 0},
-                                {PropertyType.String, 0}
+                                {PropertyType.Datetime, 0}
                             });
                         }
 
