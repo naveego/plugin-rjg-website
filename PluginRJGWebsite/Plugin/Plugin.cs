@@ -410,6 +410,7 @@ namespace PluginRJGWebsite.Plugin
                     }
                     else
                     {
+                        Logger.Error($"Timed out on: {JsonConvert.SerializeObject(record, Formatting.Indented)}");
                         // send timeout ack
                         var ack = new RecordAck
                         {
@@ -1013,6 +1014,8 @@ namespace PluginRJGWebsite.Plugin
                     recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
 
                     var postObj = GetPostObject(endpoint, recObj);
+                    
+                    Logger.Info($"Post Obj: {JsonConvert.SerializeObject(postObj, Formatting.Indented)}");
 
                     var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
                         "application/json");
@@ -1022,10 +1025,11 @@ namespace PluginRJGWebsite.Plugin
                     // add checking for if patch needs to happen
                     if (!response.IsSuccessStatusCode)
                     {
+                        Logger.Info(await response.Content.ReadAsStringAsync());
                         var errorResponse =
                             JsonConvert.DeserializeObject<ErrorResponse>(await response.Content.ReadAsStringAsync());
                         
-                        Logger.Info($"Insert response: {await response.Content.ReadAsStringAsync()}");
+                        Logger.Info($"Post response: {await response.Content.ReadAsStringAsync()}");
                         
                         if (errorResponse.Code == "product_invalid_sku" && errorResponse.Message.Contains("duplicated"))
                         {
@@ -1045,11 +1049,19 @@ namespace PluginRJGWebsite.Plugin
                             response = await _client.PatchAsync(path, content);
                             Logger.Info($"Patch response: {await response.Content.ReadAsStringAsync()}");
                             Logger.Info(await response.Content.ReadAsStringAsync());
-                            response.EnsureSuccessStatusCode();
 
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                Logger.Error("Failed to update record.");    
+                                return await response.Content.ReadAsStringAsync();
+                            }
+                            
                             Logger.Info("Modified 1 record.");
                             return "";
                         }
+                        
+                        Logger.Error("Failed to create record.");
+                        return await response.Content.ReadAsStringAsync();
                     }
 
                     Logger.Info("Created 1 record.");
