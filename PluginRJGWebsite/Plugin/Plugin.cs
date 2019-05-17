@@ -1061,7 +1061,6 @@ namespace PluginRJGWebsite.Plugin
                         }
                         
                         Logger.Error("Failed to create record.");
-                        Logger.Error(await response.Content.ReadAsStringAsync());
                         return await response.Content.ReadAsStringAsync();
                     }
 
