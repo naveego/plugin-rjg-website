@@ -1049,13 +1049,18 @@ namespace PluginRJGWebsite.Plugin
                             response = await _client.PatchAsync(path, content);
                             Logger.Info($"Patch response: {await response.Content.ReadAsStringAsync()}");
                             Logger.Info(await response.Content.ReadAsStringAsync());
-                            response.EnsureSuccessStatusCode();
 
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                Logger.Error("Failed to update record.");    
+                                return await response.Content.ReadAsStringAsync();
+                            }
+                            
                             Logger.Info("Modified 1 record.");
                             return "";
                         }
                         
-                        Logger.Error("Record creation failed.");
+                        Logger.Error("Failed to create record.");
                         Logger.Error(await response.Content.ReadAsStringAsync());
                         return await response.Content.ReadAsStringAsync();
                     }
