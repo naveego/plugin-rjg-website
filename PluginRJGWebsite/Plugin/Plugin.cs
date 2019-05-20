@@ -270,7 +270,6 @@ namespace PluginRJGWebsite.Plugin
                                             record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
                                         }
                                     }
-
                                     break;
                             }
                             
