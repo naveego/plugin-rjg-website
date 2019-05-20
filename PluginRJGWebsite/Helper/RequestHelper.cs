@@ -86,6 +86,7 @@ namespace PluginRJGWebsite.Helper
                 var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
+                client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -127,6 +128,7 @@ namespace PluginRJGWebsite.Helper
                 var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
+                client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -168,6 +170,7 @@ namespace PluginRJGWebsite.Helper
                 var uri = String.Format("{0}/{1}", _envConfig.Endpoint, path.TrimStart('/'));
                 
                 var client = _client;
+                client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
