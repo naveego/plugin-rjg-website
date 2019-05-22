@@ -895,40 +895,43 @@ namespace PluginRJGWebsite.Plugin
         private async Task<List<Dictionary<string, object>>> GetRecordsHasMetaDataPath(string path)
         {
             var records = new List<Dictionary<string, object>>();
-            try
+            
+            int page = 1;
+            while (true)
             {
-                var response = await _client.GetAsync(path);
-                response.EnsureSuccessStatusCode();
-
-                var recordsResponse =
-                    JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(
-                        await response.Content.ReadAsStringAsync());
-
-                foreach (var record in recordsResponse)
+                try
                 {
-                    var outData = new Dictionary<string, object>();
-                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
-                        JsonConvert.SerializeObject(record.Value["meta"]));
+                    var response = await _client.GetAsync($"{path}?page={page}");
+                    response.EnsureSuccessStatusCode();
 
-                    outData.Add("id", record.Value["id"]);
+                    var recordsResponse =
+                        JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(
+                            await response.Content.ReadAsStringAsync());
 
-                    foreach (var field in data)
+                    foreach (var record in recordsResponse)
                     {
-                        var result = Regex.Split(field.Key, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
+                        var outData = new Dictionary<string, object>();
+                        var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                            JsonConvert.SerializeObject(record.Value["meta"]));
 
-                        outData.Add(result.Length > 1 ? result[1] : field.Key, field.Value);
+                        outData.Add("id", record.Value["id"]);
+
+                        foreach (var field in data)
+                        {
+                            var result = Regex.Split(field.Key, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
+
+                            outData.Add(result.Length > 1 ? result[1] : field.Key, field.Value);
+                        }
+
+                        records.Add(outData);
                     }
 
-                    records.Add(outData);
+                    page++;
                 }
-
-                return records;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e.Message);
-                Logger.Info($"No records for path {path}");
-                return records;
+                catch
+                {
+                    return records;
+                }
             }
         }
 
