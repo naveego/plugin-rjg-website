@@ -270,13 +270,14 @@ namespace PluginRJGWebsite.Plugin
                                             record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
                                         }
                                     }
+
                                     break;
                             }
-                            
+
                             if (endpoint.Name == "Assessments")
                             {
                                 var metric = Regex.Split(property.Id, "-metric-", RegexOptions.IgnoreCase);
-                                
+
                                 if (metric.Length > 1)
                                 {
                                     if (!String.IsNullOrEmpty(record[property.Id].ToString()))
@@ -691,7 +692,7 @@ namespace PluginRJGWebsite.Plugin
                     foreach (var fieldKey in fields.Keys)
                     {
                         var field = fields[fieldKey];
-                        
+
                         var result = Regex.Split(field.FieldKey, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
 
                         if (result.Length > 1)
@@ -895,7 +896,7 @@ namespace PluginRJGWebsite.Plugin
         private async Task<List<Dictionary<string, object>>> GetRecordsHasMetaDataPath(string path)
         {
             var records = new List<Dictionary<string, object>>();
-            
+
             int page = 1;
             while (true)
             {
@@ -1015,9 +1016,11 @@ namespace PluginRJGWebsite.Plugin
                 {
                     recObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(record.DataJson);
 
+                    Logger.Debug($"Raw: {JsonConvert.SerializeObject(recObj, Formatting.Indented)}");
+
                     var postObj = GetPostObject(endpoint, recObj);
-                    
-                    Logger.Info($"Post Obj: {JsonConvert.SerializeObject(postObj, Formatting.Indented)}");
+
+                    Logger.Debug($"Post Obj: {JsonConvert.SerializeObject(postObj, Formatting.Indented)}");
 
                     var content = new StringContent(JsonConvert.SerializeObject(postObj), Encoding.UTF8,
                         "application/json");
@@ -1027,41 +1030,41 @@ namespace PluginRJGWebsite.Plugin
                     // add checking for if patch needs to happen
                     if (!response.IsSuccessStatusCode)
                     {
-                        Logger.Info(await response.Content.ReadAsStringAsync());
+                        Logger.Debug(await response.Content.ReadAsStringAsync());
                         var errorResponse =
                             JsonConvert.DeserializeObject<ErrorResponse>(await response.Content.ReadAsStringAsync());
-                        
-                        Logger.Info($"Post response: {await response.Content.ReadAsStringAsync()}");
-                        
+
+                        Logger.Debug($"Post response: {await response.Content.ReadAsStringAsync()}");
+
                         if (errorResponse.Code == "product_invalid_sku" && errorResponse.Message.Contains("duplicated"))
                         {
                             // record already exists, check date then patch it
                             var id = errorResponse.Data["resource_id"];
-                            
+
                             // build and send request
                             var path = String.Format("{0}/{1}", endpoint.ReadPaths.First(), id);
 
                             var patchObj = GetPatchObject(endpoint, recObj);
-                            
-                            Logger.Info($"Patch Obj: {JsonConvert.SerializeObject(patchObj, Formatting.Indented)}");
+
+                            Logger.Debug($"Patch Obj: {JsonConvert.SerializeObject(patchObj, Formatting.Indented)}");
 
                             content = new StringContent(JsonConvert.SerializeObject(patchObj), Encoding.UTF8,
                                 "application/json");
 
                             response = await _client.PatchAsync(path, content);
-                            Logger.Info($"Patch response: {await response.Content.ReadAsStringAsync()}");
-                            Logger.Info(await response.Content.ReadAsStringAsync());
+                            Logger.Debug($"Patch response: {await response.Content.ReadAsStringAsync()}");
+                            Logger.Debug(await response.Content.ReadAsStringAsync());
 
                             if (!response.IsSuccessStatusCode)
                             {
-                                Logger.Error("Failed to update record.");    
+                                Logger.Error("Failed to update record.");
                                 return await response.Content.ReadAsStringAsync();
                             }
-                            
+
                             Logger.Info("Modified 1 record.");
                             return "";
                         }
-                        
+
                         Logger.Error("Failed to create record.");
                         return await response.Content.ReadAsStringAsync();
                     }
@@ -1069,9 +1072,9 @@ namespace PluginRJGWebsite.Plugin
                     Logger.Info("Created 1 record.");
                     return "";
                 }
-                catch (Exception e)
+                catch (AggregateException e)
                 {
-                    Logger.Error(e.Message);
+                    Logger.Error(e.Flatten().ToString());
                     return e.Message;
                 }
             }
@@ -1142,11 +1145,11 @@ namespace PluginRJGWebsite.Plugin
 
                     if (recObj.TryGetValue("location_state", out var state))
                     {
-                        if (state.ToString() == "null")
+                        if (state == null)
                         {
                             if (recObj.TryGetValue("location_state_province_county", out state))
                             {
-                                if (state.ToString() == "null")
+                                if (state == null)
                                 {
                                     state = "";
                                 }
@@ -1161,7 +1164,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         if (recObj.TryGetValue("location_state_province_county", out state))
                         {
-                            if (state.ToString() == "null")
+                            if (state == null)
                             {
                                 state = "";
                             }
@@ -1321,11 +1324,11 @@ namespace PluginRJGWebsite.Plugin
 
                     if (recObj.TryGetValue("location_state", out var state))
                     {
-                        if (state.ToString() == "null")
+                        if (state == null)
                         {
                             if (recObj.TryGetValue("location_state_province_county", out state))
                             {
-                                if (state.ToString() == "null")
+                                if (state == null)
                                 {
                                     state = "";
                                 }
@@ -1340,7 +1343,7 @@ namespace PluginRJGWebsite.Plugin
                     {
                         if (recObj.TryGetValue("location_state_province_county", out state))
                         {
-                            if (state.ToString() == "null")
+                            if (state == null)
                             {
                                 state = "";
                             }
