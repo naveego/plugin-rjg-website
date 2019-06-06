@@ -104,6 +104,16 @@ namespace PluginRJGWebsite.Helper
                         "/frm/v2/forms/37/entries"
                     },
                     DataFlowDirection = Schema.Types.DataFlowDirection.Read
+                },
+                new Endpoint
+                {
+                    Name = "Wait List Registrations",
+                    MetaDataPath = "/frm/v2/forms/3/fields",
+                    ReadPaths = new List<string>
+                    {
+                        "/frm/v2/forms/3/entries"
+                    },
+                    DataFlowDirection = Schema.Types.DataFlowDirection.Read
                 }
             };
         }
