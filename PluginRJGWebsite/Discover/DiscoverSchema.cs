@@ -317,7 +317,7 @@ namespace PluginRJGWebsite.Discover
                 {
                     Id = "WordpressID",
                     Name = "WordpressID",
-                    Type = PropertyType.Integer,
+                    Type = PropertyType.String,
                     IsKey = false,
                     IsCreateCounter = false,
                     IsUpdateCounter = false,
