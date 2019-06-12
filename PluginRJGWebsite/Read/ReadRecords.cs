@@ -21,7 +21,7 @@ namespace PluginRJGWebsite.Read
             var records = new List<Dictionary<string, object>>();
             if (!String.IsNullOrEmpty(endpoint.MetaDataPath))
             {
-                var tasks = endpoint.ReadPaths.Select(p => ReadRecords.GetRecordsHasMetaDataPath(p, client, endpoint))
+                var tasks = endpoint.ReadPaths.Select(p => GetRecordsHasMetaDataPath(p, client, endpoint))
                     .ToArray();
 
                 await Task.WhenAll(tasks);
@@ -30,7 +30,7 @@ namespace PluginRJGWebsite.Read
             }
             else
             {
-                var tasks = endpoint.ReadPaths.Select(p => ReadRecords.GetRecordsNoMetaDataPath(p, client, endpoint))
+                var tasks = endpoint.ReadPaths.Select(p => GetRecordsNoMetaDataPath(p, client, endpoint))
                     .ToArray();
 
                 await Task.WhenAll(tasks);
@@ -80,8 +80,6 @@ namespace PluginRJGWebsite.Read
                         }
                         
                         var customRecord = PopulateCustomFields(outData, endpoint);
-                        records.Add(customRecord);
-
                         records.Add(customRecord);
                     }
 
