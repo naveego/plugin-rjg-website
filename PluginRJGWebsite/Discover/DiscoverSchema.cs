@@ -326,6 +326,20 @@ namespace PluginRJGWebsite.Discover
                 };
 
                 schema.Properties.Add(property);
+                
+                property = new Property
+                {
+                    Id = "jjjd6-value",
+                    Name = "Course SKU",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = false
+                };
+
+                schema.Properties.Add(property);
             }
 
             return schema;
