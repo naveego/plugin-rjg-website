@@ -309,6 +309,9 @@ namespace PluginRJGWebsite.Discover
                 };
 
                 schema.Properties.Add(property);
+
+                schema.Properties.First(p => p.Id == "date_created").Type = PropertyType.Datetime;
+                schema.Properties.First(p => p.Id == "date_created_gmt").Type = PropertyType.Datetime;
             }
             
             if (endpoint.Name == "Wait List Registrations")
