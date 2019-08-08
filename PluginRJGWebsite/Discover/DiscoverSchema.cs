@@ -89,7 +89,7 @@ namespace PluginRJGWebsite.Discover
                         IsNullable = false
                     };
                     schema.Properties.Add(update);
-                    
+
                     foreach (var fieldKey in fields.Keys)
                     {
                         var field = fields[fieldKey];
@@ -161,7 +161,7 @@ namespace PluginRJGWebsite.Discover
                         schema.Properties.Add(property);
                     }
                 }
-                
+
                 // Add custom fields
                 schema = AddCustomFields(schema, endpoint);
 
@@ -196,7 +196,8 @@ namespace PluginRJGWebsite.Discover
         /// </summary>
         /// <param name="records"></param>
         /// <returns>The property type</returns>
-        private static Dictionary<string, PropertyType> GetPropertyTypesFromRecords(List<Dictionary<string, object>> records)
+        private static Dictionary<string, PropertyType> GetPropertyTypesFromRecords(
+            List<Dictionary<string, object>> records)
         {
             try
             {
@@ -293,7 +294,7 @@ namespace PluginRJGWebsite.Discover
 
                 schema.Properties.Add(courseName);
             }
-            
+
             if (endpoint.Name == "Registrations")
             {
                 var property = new Property
@@ -309,11 +310,14 @@ namespace PluginRJGWebsite.Discover
                 };
 
                 schema.Properties.Add(property);
+            }
 
+            if (endpoint.Name == "Registrations" || endpoint.Name == "Courses" || endpoint.Name == "Classes - Read")
+            {
                 schema.Properties.First(p => p.Id == "date_created").Type = PropertyType.Datetime;
                 schema.Properties.First(p => p.Id == "date_created_gmt").Type = PropertyType.Datetime;
             }
-            
+
             if (endpoint.Name == "Wait List Registrations")
             {
                 var property = new Property
@@ -329,7 +333,7 @@ namespace PluginRJGWebsite.Discover
                 };
 
                 schema.Properties.Add(property);
-                
+
                 property = new Property
                 {
                     Id = "jjjd6-value",
@@ -356,144 +360,144 @@ namespace PluginRJGWebsite.Discover
         private static Schema GetClassesWrite(Schema schema)
         {
             var properties = new List<Property>
+            {
+                new Property
                 {
-                    new Property
-                    {
-                        Id = "open_seats",
-                        Name = "open_seats",
-                        Type = PropertyType.Integer,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "int",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "language",
-                        Name = "language",
-                        Type = PropertyType.String,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "location_name",
-                        Name = "location_name",
-                        Type = PropertyType.String,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "location_city",
-                        Name = "location_city",
-                        Type = PropertyType.String,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "location_state",
-                        Name = "location_state",
-                        Type = PropertyType.String,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "location_state_province_county",
-                        Name = "location_state_province_county",
-                        Type = PropertyType.String,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "start_date",
-                        Name = "start_date",
-                        Type = PropertyType.Datetime,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "date",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "end_date",
-                        Name = "end_date",
-                        Type = PropertyType.Datetime,
-                        IsKey = false,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "date",
-                        IsNullable = true
-                    },
-                    new Property
-                    {
-                        Id = "sku",
-                        Name = "sku",
-                        Type = PropertyType.String,
-                        IsKey = true,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = false
-                    },
-                    new Property
-                    {
-                        Id = "course_sku",
-                        Name = "course_sku",
-                        Type = PropertyType.String,
-                        IsKey = true,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = false
-                    },
-                    new Property
-                    {
-                        Id = "price",
-                        Name = "price",
-                        Type = PropertyType.String,
-                        IsKey = true,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "string",
-                        IsNullable = false
-                    },
-                    new Property
-                    {
-                        Id = "visible",
-                        Name = "visible",
-                        Type = PropertyType.Bool,
-                        IsKey = true,
-                        IsCreateCounter = false,
-                        IsUpdateCounter = false,
-                        TypeAtSource = "boolean",
-                        IsNullable = false
-                    },
-                };
+                    Id = "open_seats",
+                    Name = "open_seats",
+                    Type = PropertyType.Integer,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "int",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "language",
+                    Name = "language",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "location_name",
+                    Name = "location_name",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "location_city",
+                    Name = "location_city",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "location_state",
+                    Name = "location_state",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "location_state_province_county",
+                    Name = "location_state_province_county",
+                    Type = PropertyType.String,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "start_date",
+                    Name = "start_date",
+                    Type = PropertyType.Datetime,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "date",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "end_date",
+                    Name = "end_date",
+                    Type = PropertyType.Datetime,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "date",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "sku",
+                    Name = "sku",
+                    Type = PropertyType.String,
+                    IsKey = true,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = false
+                },
+                new Property
+                {
+                    Id = "course_sku",
+                    Name = "course_sku",
+                    Type = PropertyType.String,
+                    IsKey = true,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = false
+                },
+                new Property
+                {
+                    Id = "price",
+                    Name = "price",
+                    Type = PropertyType.String,
+                    IsKey = true,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
+                    IsNullable = false
+                },
+                new Property
+                {
+                    Id = "visible",
+                    Name = "visible",
+                    Type = PropertyType.Bool,
+                    IsKey = true,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "boolean",
+                    IsNullable = false
+                },
+            };
 
-                schema.Properties.AddRange(properties);
-                
-                return schema;
+            schema.Properties.AddRange(properties);
+
+            return schema;
         }
     }
 }
