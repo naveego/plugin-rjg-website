@@ -51,11 +51,12 @@ namespace PluginRJGWebsite.Read
                     record = CustomProcessing(record, property, endpoint);
                 }
             }
-
+            
             return record;
         }
 
-        private static Dictionary<string, object> CustomProcessing(Dictionary<string, object> record, Property property, Endpoint endpoint)
+        private static Dictionary<string, object> CustomProcessing(Dictionary<string, object> record, Property property,
+            Endpoint endpoint)
         {
             if (endpoint.Name == "Assessments")
             {
@@ -70,7 +71,7 @@ namespace PluginRJGWebsite.Read
                     }
                 }
             }
-            
+
             return record;
         }
     }

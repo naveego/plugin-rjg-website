@@ -1,0 +1,9 @@
+apps:
+- name: plugin-rjg-website
+  branching:
+    master: master
+    develop: master
+    release: ""
+    feature: issue/{{.Number}}/{{.Slug}}
+  repo: naveego/plugin-rjg-website
+  version: 1.17.0
