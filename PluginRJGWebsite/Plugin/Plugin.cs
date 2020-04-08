@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PluginRJGWebsite.DataContracts;
@@ -15,7 +16,6 @@ using PluginRJGWebsite.Discover;
 using PluginRJGWebsite.Helper;
 using PluginRJGWebsite.Read;
 using PluginRJGWebsite.Write;
-using Pub;
 using Field = PluginRJGWebsite.DataContracts.Field;
 
 namespace PluginRJGWebsite.Plugin
@@ -47,6 +47,8 @@ namespace PluginRJGWebsite.Plugin
         /// <returns>A message indicating connection success</returns>
         public override async Task<ConnectResponse> Connect(ConnectRequest request, ServerCallContext context)
         {
+            Logger.SetLogPrefix("connect");
+            
             _server.Connected = false;
 
             Logger.Info("Connecting...");
@@ -114,6 +116,7 @@ namespace PluginRJGWebsite.Plugin
         public override async Task ConnectSession(ConnectRequest request,
             IServerStreamWriter<ConnectResponse> responseStream, ServerCallContext context)
         {
+            Logger.SetLogPrefix("connect_session");
             Logger.Info("Connecting session...");
 
             // create task to wait for disconnect to be called
@@ -141,6 +144,7 @@ namespace PluginRJGWebsite.Plugin
         public override async Task<DiscoverSchemasResponse> DiscoverSchemas(DiscoverSchemasRequest request,
             ServerCallContext context)
         {
+            Logger.SetLogPrefix("discover");
             Logger.Info("Discovering Schemas...");
 
             var discoverSchemasResponse = new DiscoverSchemasResponse();
@@ -209,10 +213,13 @@ namespace PluginRJGWebsite.Plugin
         public override async Task ReadStream(ReadRequest request, IServerStreamWriter<Record> responseStream,
             ServerCallContext context)
         {
+            var jobId = request.JobId;
             var schema = request.Schema;
             var limit = request.Limit;
             var limitFlag = request.Limit != 0;
             var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
+            
+            Logger.SetLogPrefix(jobId);
 
             Logger.Info($"Publishing records for schema: {schema.Name}");
 
@@ -261,6 +268,7 @@ namespace PluginRJGWebsite.Plugin
         /// <returns></returns>
         public override Task<PrepareWriteResponse> PrepareWrite(PrepareWriteRequest request, ServerCallContext context)
         {
+            Logger.SetLogPrefix(request.DataVersions.JobId);
             Logger.Info("Preparing write...");
             _server.WriteConfigured = false;
 

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PluginRJGWebsite.DataContracts;
 using PluginRJGWebsite.Helper;
-using Pub;
 
 namespace PluginRJGWebsite.Discover
 {
@@ -17,6 +17,7 @@ namespace PluginRJGWebsite.Discover
         /// Gets a schema for a given endpoint
         /// </summary>
         /// <param name="endpoint"></param>
+        /// <param name="client"></param>
         /// <returns>returns a schema or null if unavailable</returns>
         public static async Task<Schema> GetSchemaForEndpoint(Endpoint endpoint, RequestHelper client)
         {

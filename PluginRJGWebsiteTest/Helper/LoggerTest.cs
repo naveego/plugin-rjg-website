@@ -6,7 +6,7 @@ namespace PluginRJGWebsiteTest.Helper
 {
     public class LoggerTest
     {
-        private static string _path = @"plugin-rjg-website-log.txt";
+        private static string _path = @"logs/plugin-rjg-website-log.txt";
         
         [Fact]
         public void VerboseTest()

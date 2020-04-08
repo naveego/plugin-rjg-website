@@ -14,7 +14,8 @@ namespace PluginRJGWebsite.Helper
             Error,
             Off
         }
-        
+
+        private static string _logPrefix = "";
         private static string _path = @"plugin-rjg-website-log.txt";
         private static LogLevel _level = LogLevel.Info;
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
@@ -29,8 +30,12 @@ namespace PluginRJGWebsite.Helper
             _readWriteLock.EnterWriteLock();
             try
             {
+                // ensure log directory exists
+                Directory.CreateDirectory("logs");
+                
                 // Append text to the file
-                using (StreamWriter sw = File.AppendText(_path))
+                var filePath = $"logs/{_logPrefix}{_path}";
+                using (StreamWriter sw = File.AppendText(filePath))
                 {
                     sw.WriteLine($"{DateTime.Now} {message}");
                     sw.Close();
@@ -119,6 +124,15 @@ namespace PluginRJGWebsite.Helper
         public static void SetLogLevel(LogLevel level)
         {
             _level = level;
+        }
+
+        /// <summary>
+        /// Sets a 
+        /// </summary>
+        /// <param name="logPrefix"></param>
+        public static void SetLogPrefix(string logPrefix)
+        {
+            _logPrefix = logPrefix;
         }
     }
 }

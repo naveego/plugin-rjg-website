@@ -5,10 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Pub;
+using Naveego.Sdk.Plugins;
 using RichardSzalay.MockHttp;
 using Xunit;
-using Record = Pub.Record;
+using Record = Naveego.Sdk.Plugins.Record;
 
 namespace PluginRJGWebsiteTest.Plugin
 {
@@ -333,7 +333,14 @@ namespace PluginRJGWebsiteTest.Plugin
             var request = new PrepareWriteRequest()
             {
                 Schema = new Schema {Name = "Leads"},
-                CommitSlaSeconds = 1
+                CommitSlaSeconds = 1,
+                DataVersions = new DataVersions
+                {
+                    JobId = "jobUnitTest",
+                    ShapeId = "shapeUnitTest",
+                    JobDataVersion = 1,
+                    ShapeDataVersion = 1
+                }
             };
 
             // act
@@ -382,7 +389,14 @@ namespace PluginRJGWebsiteTest.Plugin
                         }
                     }
                 },
-                CommitSlaSeconds = 1
+                CommitSlaSeconds = 1,
+                DataVersions = new DataVersions
+                {
+                    JobId = "jobUnitTest",
+                    ShapeId = "shapeUnitTest",
+                    JobDataVersion = 1,
+                    ShapeDataVersion = 1
+                }
             };
             
             var records = new List<Record>()

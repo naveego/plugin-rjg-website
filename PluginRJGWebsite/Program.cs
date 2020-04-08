@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Grpc.Core;
+using Naveego.Sdk.Plugins;
 using PluginRJGWebsite.Helper;
-using Pub;
 
 namespace PluginRJGWebsite
 {
