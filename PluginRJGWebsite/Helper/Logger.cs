@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -19,6 +20,7 @@ namespace PluginRJGWebsite.Helper
         private static string _path = @"plugin-rjg-website-log.txt";
         private static LogLevel _level = LogLevel.Info;
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
+        private static Queue<string> _logBuffer = new Queue<string>();
         
         /// <summary>
         /// Writes a log message with time stamp to a file
@@ -63,13 +65,40 @@ namespace PluginRJGWebsite.Helper
         }
 
         /// <summary>
+        /// Writes out the message buffer
+        /// </summary>
+        public static void WriteBuffer()
+        {
+            try
+            {
+                while (_logBuffer.Count > 0)
+                {
+                    Log(_logBuffer.Dequeue());
+                }
+            }
+            catch (Exception e)
+            {
+                Log(e.Message);
+                throw;
+            }
+            
+        }
+
+        /// <summary>
         /// Logging method for Verbose messages
         /// </summary>
         /// <param name="message"></param>
-        public static void Verbose(string message)
+        /// <param name="buffer"></param>
+        public static void Verbose(string message, bool buffer = false)
         {
             if (_level > LogLevel.Verbose)
             {
+                return;
+            }
+
+            if (buffer)
+            {
+                _logBuffer.Enqueue(message);
                 return;
             }
             
@@ -80,10 +109,17 @@ namespace PluginRJGWebsite.Helper
         /// Logging method for Debug messages
         /// </summary>
         /// <param name="message"></param>
-        public static void Debug(string message)
+        /// <param name="buffer"></param>
+        public static void Debug(string message, bool buffer = false)
         {
             if (_level > LogLevel.Debug)
             {
+                return;
+            }
+            
+            if (buffer)
+            {
+                _logBuffer.Enqueue(message);
                 return;
             }
             
@@ -93,10 +129,17 @@ namespace PluginRJGWebsite.Helper
         /// Logging method for Info messages
         /// </summary>
         /// <param name="message"></param>
-        public static void Info(string message)
+        /// <param name="buffer"></param>
+        public static void Info(string message, bool buffer = false)
         {
             if (_level > LogLevel.Info)
             {
+                return;
+            }
+            
+            if (buffer)
+            {
+                _logBuffer.Enqueue(message);
                 return;
             }
             
@@ -107,10 +150,17 @@ namespace PluginRJGWebsite.Helper
         /// Logging method for Error messages
         /// </summary>
         /// <param name="message"></param>
-        public static void Error(string message)
+        /// <param name="buffer"></param>
+        public static void Error(string message, bool buffer = false)
         {
             if (_level > LogLevel.Error)
             {
+                return;
+            }
+            
+            if (buffer)
+            {
+                _logBuffer.Enqueue(message);
                 return;
             }
             

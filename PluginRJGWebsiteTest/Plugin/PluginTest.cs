@@ -25,7 +25,14 @@ namespace PluginRJGWebsiteTest.Plugin
                     ClientSecret = "",
                     ConfigurationJson = "{}"
                 },
-                OauthStateJson = ""
+                OauthStateJson = "",
+                DataVersions = new DataVersions
+                {
+                    JobId = "jobUnitTest",
+                    ShapeId = "shapeUnitTest",
+                    JobDataVersion = 1,
+                    ShapeDataVersion = 1
+                }
             };
         }
 

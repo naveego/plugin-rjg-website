@@ -272,7 +272,7 @@ namespace PluginRJGWebsite.Discover
             }
             catch (Exception e)
             {
-                Logger.Info(e.Message);
+                Logger.Error(e.Message);
                 throw;
             }
         }
