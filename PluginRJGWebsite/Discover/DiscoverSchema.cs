@@ -137,7 +137,7 @@ namespace PluginRJGWebsite.Discover
                 else
                 {
                     var response = await client.GetAsync(endpoint.ReadPaths.First());
-
+                    
                     var recordsList =
                         JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
                             await response.Content.ReadAsStringAsync());
@@ -171,6 +171,7 @@ namespace PluginRJGWebsite.Discover
             }
             catch (Exception e)
             {
+                Logger.Error($"Failed getting fields for: {endpoint.Name}");
                 Logger.Error(e.Message);
                 return null;
             }
@@ -384,10 +385,21 @@ namespace PluginRJGWebsite.Discover
                     TypeAtSource = "string",
                     IsNullable = true
                 },
+                // new Property
+                // {
+                //     Id = "location_name",
+                //     Name = "location_name",
+                //     Type = PropertyType.String,
+                //     IsKey = false,
+                //     IsCreateCounter = false,
+                //     IsUpdateCounter = false,
+                //     TypeAtSource = "string",
+                //     IsNullable = true
+                // },
                 new Property
                 {
-                    Id = "location_name",
-                    Name = "location_name",
+                    Id = "affiliation",
+                    Name = "affiliation",
                     Type = PropertyType.String,
                     IsKey = false,
                     IsCreateCounter = false,
@@ -492,6 +504,17 @@ namespace PluginRJGWebsite.Discover
                     IsCreateCounter = false,
                     IsUpdateCounter = false,
                     TypeAtSource = "boolean",
+                    IsNullable = false
+                },
+                new Property
+                {
+                    Id = "currency",
+                    Name = "currency",
+                    Type = PropertyType.String,
+                    IsKey = true,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "string",
                     IsNullable = false
                 },
             };

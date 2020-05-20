@@ -9,7 +9,7 @@ namespace PluginRJGWebsite.Helper
             switch (environment)
             {
                 case "Development":
-                    Endpoint = "https://rjgdev.clockwork360.com/wp-json";
+                    Endpoint = "https://wpstaging.rjginc.com/wp-json";
                     return;
                 case "Production":
                     Endpoint = "https://rjginc.com/wp-json";

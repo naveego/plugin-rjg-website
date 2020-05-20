@@ -83,7 +83,7 @@ namespace PluginRJGWebsite.Plugin
             // attempt to call the RJG Website api
             try
             {
-                var response = await _client.GetAsync("/rjg/v1/courses");
+                var response = await _client.GetAsync("/rjg/v2/classes");
                 response.EnsureSuccessStatusCode();
 
                 _server.Connected = true;

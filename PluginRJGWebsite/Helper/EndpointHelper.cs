@@ -13,43 +13,73 @@ namespace PluginRJGWebsite.Helper
         {
             Endpoints = new List<Endpoint>
             {
-                new Endpoint
-                {
-                    Name = "Courses",
-                    MetaDataPath = "",
-                    ReadPaths = new List<string>
-                    {
-                        "/rjg/v1/courses"
-                    },
-                    DataFlowDirection = Schema.Types.DataFlowDirection.Read
-                },
+                // new Endpoint
+                // {
+                //     Name = "Courses",
+                //     MetaDataPath = "",
+                //     ReadPaths = new List<string>
+                //     {
+                //         "/rjg/v1/courses"
+                //     },
+                //     DataFlowDirection = Schema.Types.DataFlowDirection.Read
+                // },
+                // new Endpoint
+                // {
+                //     Name = "Classes - Read",
+                //     MetaDataPath = "",
+                //     ReadPaths = new List<string>
+                //     {
+                //         "/rjg/v1/classes"
+                //     },
+                //     DataFlowDirection = Schema.Types.DataFlowDirection.Read
+                // },
                 new Endpoint
                 {
                     Name = "Classes - Read",
                     MetaDataPath = "",
                     ReadPaths = new List<string>
                     {
-                        "/rjg/v1/classes"
+                        "/rjg/v2/classes"
                     },
                     DataFlowDirection = Schema.Types.DataFlowDirection.Read
                 },
+                // new Endpoint
+                // {
+                //     Name = "Classes - Write",
+                //     MetaDataPath = "",
+                //     ReadPaths = new List<string>
+                //     {
+                //         "/rjg/v1/classes"
+                //     },
+                //     DataFlowDirection = Schema.Types.DataFlowDirection.Write
+                // },
                 new Endpoint
                 {
                     Name = "Classes - Write",
                     MetaDataPath = "",
                     ReadPaths = new List<string>
                     {
-                        "/rjg/v1/classes"
+                        "/rjg/v2/classes"
                     },
                     DataFlowDirection = Schema.Types.DataFlowDirection.Write
                 },
+                // new Endpoint
+                // {
+                //     Name = "Registrations",
+                //     MetaDataPath = "",
+                //     ReadPaths = new List<string>
+                //     {
+                //         "/rjg/v1/registrations"
+                //     },
+                //     DataFlowDirection = Schema.Types.DataFlowDirection.Read
+                // },
                 new Endpoint
                 {
                     Name = "Registrations",
                     MetaDataPath = "",
                     ReadPaths = new List<string>
                     {
-                        "/rjg/v1/registrations"
+                        "/rjg/v2/registrations"
                     },
                     DataFlowDirection = Schema.Types.DataFlowDirection.Read
                 },

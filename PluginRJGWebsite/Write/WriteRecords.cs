@@ -24,6 +24,7 @@ namespace PluginRJGWebsite.Write
         /// <returns></returns>
         public static async Task<string> PutRecord(Schema schema, Record record, EndpointHelper endpointHelper, RequestHelper client)
         {
+            // Logger.SetLogLevel(Logger.LogLevel.Debug);
             Dictionary<string, object> recObj;
             var endpoint = endpointHelper.GetEndpointForName(schema.Id);
 
@@ -197,17 +198,17 @@ namespace PluginRJGWebsite.Write
                         language = "";
                     }
 
-                    if (recObj.TryGetValue("location_name", out var location))
-                    {
-                        if (location == null)
-                        {
-                            location = "";
-                        }
-                    }
-                    else
-                    {
-                        location = "";
-                    }
+                    // if (recObj.TryGetValue("location_name", out var location))
+                    // {
+                    //     if (location == null)
+                    //     {
+                    //         location = "";
+                    //     }
+                    // }
+                    // else
+                    // {
+                    //     location = "";
+                    // }
 
                     if (recObj.TryGetValue("location_city", out var city))
                     {
@@ -322,19 +323,45 @@ namespace PluginRJGWebsite.Write
                     {
                         visible = true;
                     }
+                    
+                    if (recObj.TryGetValue("currency", out var currency))
+                    {
+                        if (currency == null)
+                        {
+                            currency = "";
+                        }
+                    }
+                    else
+                    {
+                        currency = "";
+                    }
+                    
+                    if (recObj.TryGetValue("affiliation", out var affiliation))
+                    {
+                        if (affiliation == null)
+                        {
+                            affiliation = "";
+                        }
+                    }
+                    else
+                    {
+                        affiliation = "";
+                    }
 
                     return new ClassesPatchObject
                     {
                         OpenSeats = int.Parse(openSeats.ToString()),
                         Language = language.ToString(),
-                        Location = location.ToString(),
+                        // Location = location.ToString(),
                         City = city.ToString(),
                         State = state.ToString(),
                         StartDate = startDate.ToString(),
                         EndDate = endDate.ToString(),
                         CourseSKU = courseSku.ToString(),
                         Price = price.ToString(),
-                        Visible = bool.Parse(visible.ToString())
+                        Visible = bool.Parse(visible.ToString()),
+                        Currency = currency.ToString(),
+                        Affiliation = affiliation.ToString()
                     };
                 default:
                     return new object();
@@ -376,17 +403,17 @@ namespace PluginRJGWebsite.Write
                         language = "";
                     }
 
-                    if (recObj.TryGetValue("location_name", out var location))
-                    {
-                        if (location == null)
-                        {
-                            location = "";
-                        }
-                    }
-                    else
-                    {
-                        location = "";
-                    }
+                    // if (recObj.TryGetValue("location_name", out var location))
+                    // {
+                    //     if (location == null)
+                    //     {
+                    //         location = "";
+                    //     }
+                    // }
+                    // else
+                    // {
+                    //     location = "";
+                    // }
 
                     if (recObj.TryGetValue("location_city", out var city))
                     {
@@ -513,12 +540,37 @@ namespace PluginRJGWebsite.Write
                     {
                         visible = true;
                     }
+                    
+                    if (recObj.TryGetValue("currency", out var currency))
+                    {
+                        if (currency == null)
+                        {
+                            currency = "";
+                        }
+                    }
+                    else
+                    {
+                        currency = "";
+                    }
+                    
+                    if (recObj.TryGetValue("affiliation", out var affiliation))
+                    {
+                        if (affiliation == null)
+                        {
+                            affiliation = "";
+                        }
+                    }
+                    else
+                    {
+                        affiliation = "";
+                    }
+
 
                     return new ClassesPostObject
                     {
                         OpenSeats = int.Parse(openSeats.ToString()),
                         Language = language.ToString(),
-                        Location = location.ToString(),
+                        // Location = location.ToString(),
                         City = city.ToString(),
                         State = state.ToString(),
                         StartDate = startDate.ToString(),
@@ -526,7 +578,9 @@ namespace PluginRJGWebsite.Write
                         SKU = sku.ToString(),
                         CourseSKU = courseSku.ToString(),
                         Price = price.ToString(),
-                        Visible = bool.Parse(visible.ToString())
+                        Visible = bool.Parse(visible.ToString()),
+                        Currency = currency.ToString(),
+                        Affiliation = affiliation.ToString()
                     };
                 default:
                     return new object();
