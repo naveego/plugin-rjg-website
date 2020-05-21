@@ -15,7 +15,8 @@ namespace PluginRJGWebsite.Helper
                     Endpoint = "https://rjginc.com/wp-json";
                     return;
                 default:
-                    Logger.Error($"Environment {environment} not known. Unable to get config.");
+                    Endpoint = environment;
+                    // Logger.Debug($"Environment {environment} not known. Unable to get config.");
                     return; 
             }
         }

@@ -32,15 +32,7 @@
         "Environment": {
           "type": "string",
           "title": "Username",
-          "description": "The environment to target",
-          "enum": [
-            "Development",
-            "Production"
-          ],
-          "enumNames": [
-            "Development",
-            "Production"
-          ]
+          "description": "The environment to target (ex. https://rjginc.com/wp-json)"
         },
         "Username": {
           "type": "string",
