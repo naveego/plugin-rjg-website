@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Grpc.Core;
 
 namespace PluginRJGWebsite.Helper
 {
@@ -149,20 +150,35 @@ namespace PluginRJGWebsite.Helper
         /// <summary>
         /// Logging method for Error messages
         /// </summary>
+        /// <param name="exception"></param>
         /// <param name="message"></param>
-        /// <param name="buffer"></param>
-        public static void Error(string message, bool buffer = false)
+        public static void Error(Exception exception, string message)
         {
             if (_level > LogLevel.Error)
             {
                 return;
             }
             
-            if (buffer)
+            GrpcEnvironment.Logger.Error(exception, message);
+            
+            Log(message);
+        }
+        
+        /// <summary>
+        /// Logging method for Error messages to the context
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        /// <param name="context"></param>
+        public static void Error(Exception exception, string message, ServerCallContext context)
+        {
+            if (_level > LogLevel.Error)
             {
-                _logBuffer.Enqueue(message);
                 return;
             }
+            
+            GrpcEnvironment.Logger.Error(exception, message);
+            context.Status = new Status(StatusCode.Unknown, message);
             
             Log(message);
         }

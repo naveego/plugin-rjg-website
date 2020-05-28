@@ -14,7 +14,7 @@ namespace PluginRJGWebsiteTest.Plugin
         {
             return new ConnectRequest
             {
-                SettingsJson = "{\"Environment\":\"Development\",\"Username\":\"\",\"Password\":\"\"}",
+                SettingsJson = "{\"Environment\":\"https://wpstaging.rjginc.com/wp-json\",\"Username\":\"\",\"Password\":\"\"}",
                 OauthConfiguration = new OAuthConfiguration
                 {
                     ClientId = "",

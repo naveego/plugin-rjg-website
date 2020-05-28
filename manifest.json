@@ -4,7 +4,7 @@
   "description": "Publisher which pulls data from the RJG Website",
   "apiVersion": "2",
   "versionDescription": "Version 1",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "iconFile": "icon.png",
   "executable": "PluginRJGWebsite",
   "kind": "publisher",
@@ -31,7 +31,7 @@
       "properties": {
         "Environment": {
           "type": "string",
-          "title": "Username",
+          "title": "Environment",
           "description": "The environment to target (ex. https://rjginc.com/wp-json)"
         },
         "Username": {

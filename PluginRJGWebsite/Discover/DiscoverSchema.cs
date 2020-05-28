@@ -171,8 +171,8 @@ namespace PluginRJGWebsite.Discover
             }
             catch (Exception e)
             {
-                Logger.Error($"Failed getting fields for: {endpoint.Name}");
-                Logger.Error(e.Message);
+                Logger.Error(e, $"Failed getting fields for: {endpoint.Name}");
+                Logger.Error(e, e.Message);
                 return null;
             }
         }
@@ -273,7 +273,7 @@ namespace PluginRJGWebsite.Discover
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
+                Logger.Error(e, e.Message);
                 throw;
             }
         }

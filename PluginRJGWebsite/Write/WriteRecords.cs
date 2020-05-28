@@ -75,7 +75,7 @@ namespace PluginRJGWebsite.Write
 
                             if (!response.IsSuccessStatusCode)
                             {
-                                Logger.Error("Failed to update record.");
+                                Logger.Error(null, "Failed to update record.");
                                 return await response.Content.ReadAsStringAsync();
                             }
 
@@ -83,7 +83,7 @@ namespace PluginRJGWebsite.Write
                             return "";
                         }
 
-                        Logger.Error("Failed to create record.");
+                        Logger.Error(null, "Failed to create record.");
                         return await response.Content.ReadAsStringAsync();
                     }
 
@@ -92,7 +92,7 @@ namespace PluginRJGWebsite.Write
                 }
                 catch (AggregateException e)
                 {
-                    Logger.Error(e.Flatten().ToString());
+                    Logger.Error(e, e.Flatten().ToString());
                     return e.Message;
                 }
             }
@@ -141,7 +141,7 @@ namespace PluginRJGWebsite.Write
                                 }
                                 catch (Exception e)
                                 {
-                                    Logger.Error(e.Message);
+                                    Logger.Error(e, e.Message);
                                 }
                             }
                         }
@@ -153,7 +153,7 @@ namespace PluginRJGWebsite.Write
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e.Message);
+                    Logger.Error(e, e.Message);
                     return e.Message;
                 }
             }
