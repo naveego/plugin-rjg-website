@@ -21,7 +21,7 @@ namespace PluginRJGWebsite.Helper
         private static LogLevel _level = LogLevel.Info;
         private static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
         private static Queue<string> _logBuffer = new Queue<string>();
-        
+
         /// <summary>
         /// Writes a log message with time stamp to a file
         /// </summary>
@@ -34,7 +34,7 @@ namespace PluginRJGWebsite.Helper
             {
                 // ensure log directory exists
                 Directory.CreateDirectory("logs");
-                
+
                 // Append text to the file
                 var filePath = $"logs/{_logPrefix}{_path}";
                 using (StreamWriter sw = File.AppendText(filePath))
@@ -43,13 +43,16 @@ namespace PluginRJGWebsite.Helper
                     sw.Close();
                 }
             }
+            catch
+            {
+            }
             finally
             {
                 // Release lock
                 _readWriteLock.ExitWriteLock();
             }
         }
-        
+
         /// <summary>
         /// Deletes log file if it is older than 7 days
         /// </summary>
@@ -81,7 +84,6 @@ namespace PluginRJGWebsite.Helper
                 Log(e.Message);
                 throw;
             }
-            
         }
 
         /// <summary>
@@ -101,10 +103,10 @@ namespace PluginRJGWebsite.Helper
                 _logBuffer.Enqueue(message);
                 return;
             }
-            
+
             Log(message);
         }
-        
+
         /// <summary>
         /// Logging method for Debug messages
         /// </summary>
@@ -116,15 +118,16 @@ namespace PluginRJGWebsite.Helper
             {
                 return;
             }
-            
+
             if (buffer)
             {
                 _logBuffer.Enqueue(message);
                 return;
             }
-            
+
             Log(message);
         }
+
         /// <summary>
         /// Logging method for Info messages
         /// </summary>
@@ -136,16 +139,16 @@ namespace PluginRJGWebsite.Helper
             {
                 return;
             }
-            
+
             if (buffer)
             {
                 _logBuffer.Enqueue(message);
                 return;
             }
-            
+
             Log(message);
         }
-        
+
         /// <summary>
         /// Logging method for Error messages
         /// </summary>
@@ -157,13 +160,13 @@ namespace PluginRJGWebsite.Helper
             {
                 return;
             }
-            
+
             if (buffer)
             {
                 _logBuffer.Enqueue(message);
                 return;
             }
-            
+
             Log(message);
         }
 
