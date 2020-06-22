@@ -230,9 +230,9 @@ namespace PluginRJGWebsite.Plugin
             try
             {
                 var recordsCount = 0;
-                var records = await ReadRecords.GetAllRecords(_client, endpoint);
-
-                foreach (var record in records)
+                var records = ReadRecords.GetAllRecords(_client, endpoint);
+                
+                await foreach (var record in records)
                 {
                     var preparedRecord = PrepareRecords.PrepareRecordTypes(record, schema, endpoint);
                     

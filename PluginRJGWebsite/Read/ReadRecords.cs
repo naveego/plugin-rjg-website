@@ -16,29 +16,30 @@ namespace PluginRJGWebsite.Read
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public static async Task<List<Dictionary<string, object>>> GetAllRecords(RequestHelper client, Endpoint endpoint)
+        public static async IAsyncEnumerable<Dictionary<string, object>> GetAllRecords(RequestHelper client, Endpoint endpoint)
         {
-            var records = new List<Dictionary<string, object>>();
             if (!String.IsNullOrEmpty(endpoint.MetaDataPath))
             {
-                var tasks = endpoint.ReadPaths.Select(p => GetRecordsHasMetaDataPath(p, client, endpoint))
-                    .ToArray();
-
-                await Task.WhenAll(tasks);
-
-                records.AddRange(tasks.SelectMany(x => x.Result).ToList());
+                foreach (var path in endpoint.ReadPaths)
+                {
+                    var records = GetRecordsHasMetaDataPath(path, client, endpoint);
+                    await foreach (var record in records)
+                    {
+                        yield return record;
+                    }
+                }
             }
             else
             {
-                var tasks = endpoint.ReadPaths.Select(p => GetRecordsNoMetaDataPath(p, client, endpoint))
-                    .ToArray();
-
-                await Task.WhenAll(tasks);
-
-                records.AddRange(tasks.SelectMany(x => x.Result).ToList());
+                foreach (var path in endpoint.ReadPaths)
+                {
+                    var records = GetRecordsNoMetaDataPath(path, client, endpoint);
+                    await foreach (var record in records)
+                    {
+                        yield return record;
+                    }
+                }
             }
-
-            return records;
         }
         
         /// <summary>
@@ -48,47 +49,42 @@ namespace PluginRJGWebsite.Read
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        private static async Task<List<Dictionary<string, object>>> GetRecordsHasMetaDataPath(string path, RequestHelper client, Endpoint endpoint)
+        private static async IAsyncEnumerable<Dictionary<string, object>> GetRecordsHasMetaDataPath(string path, RequestHelper client, Endpoint endpoint)
         {
-            var records = new List<Dictionary<string, object>>();
-
             int page = 1;
             while (true)
             {
-                try
+                var response = await client.GetAsync($"{path}?page={page}");
+                if (!response.IsSuccessStatusCode)
                 {
-                    var response = await client.GetAsync($"{path}?page={page}");
-                    response.EnsureSuccessStatusCode();
+                    break;
+                }
 
-                    var recordsResponse =
-                        JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(
-                            await response.Content.ReadAsStringAsync());
+                var recordsResponse =
+                    JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(
+                        await response.Content.ReadAsStringAsync());
 
-                    foreach (var record in recordsResponse)
+                foreach (var record in recordsResponse)
+                {
+                    var outData = new Dictionary<string, object>();
+                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                        JsonConvert.SerializeObject(record.Value["meta"]));
+
+                    outData.Add("id", record.Value["id"]);
+
+                    foreach (var field in data)
                     {
-                        var outData = new Dictionary<string, object>();
-                        var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(
-                            JsonConvert.SerializeObject(record.Value["meta"]));
+                        var result = Regex.Split(field.Key, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
 
-                        outData.Add("id", record.Value["id"]);
-
-                        foreach (var field in data)
-                        {
-                            var result = Regex.Split(field.Key, ".*-[a-z]{2}_(.*)", RegexOptions.IgnoreCase);
-
-                            outData.Add(result.Length > 1 ? result[1] : field.Key, field.Value);
-                        }
-                        
-                        var customRecord = PopulateCustomFields(outData, endpoint);
-                        records.Add(customRecord);
+                        outData.Add(result.Length > 1 ? result[1] : field.Key, field.Value);
                     }
+                        
+                    var customRecord = PopulateCustomFields(outData, endpoint);
+                    
+                    yield return customRecord;
+                }
 
-                    page++;
-                }
-                catch
-                {
-                    return records;
-                }
+                page++;
             }
         }
 
@@ -99,34 +95,29 @@ namespace PluginRJGWebsite.Read
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        private static async Task<List<Dictionary<string, object>>> GetRecordsNoMetaDataPath(string path, RequestHelper client, Endpoint endpoint)
+        private static async IAsyncEnumerable<Dictionary<string, object>> GetRecordsNoMetaDataPath(string path, RequestHelper client, Endpoint endpoint)
         {
-            var records = new List<Dictionary<string, object>>();
-            try
+            int page = 1;
+            bool morePages = true;
+
+            do
             {
-                int page = 1;
-                bool morePages = true;
-
-                do
+                var response = await client.GetAsync($"{path}?page={page}");
+                if (!response.IsSuccessStatusCode)
                 {
-                    var response = await client.GetAsync($"{path}?page={page}");
-                    response.EnsureSuccessStatusCode();
+                    break;
+                }
 
-                    if (response.Headers.TryGetValues("Link", out var linkHeaders))
+                if (response.Headers.TryGetValues("Link", out var linkHeaders))
+                {
+                    var linkHeader = linkHeaders.FirstOrDefault();
+                    if (linkHeader != null)
                     {
-                        var linkHeader = linkHeaders.FirstOrDefault();
-                        if (linkHeader != null)
-                        {
-                            var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
+                        var result = Regex.Split(linkHeader, "rel=\"next\"", RegexOptions.IgnoreCase);
 
-                            if (result.Length > 1)
-                            {
-                                page++;
-                            }
-                            else
-                            {
-                                morePages = false;
-                            }
+                        if (result.Length > 1)
+                        {
+                            page++;
                         }
                         else
                         {
@@ -137,25 +128,23 @@ namespace PluginRJGWebsite.Read
                     {
                         morePages = false;
                     }
+                }
+                else
+                {
+                    morePages = false;
+                }
 
-                    var recordsResponse =
-                        JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
-                            await response.Content.ReadAsStringAsync());
+                var recordsResponse =
+                    JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(
+                        await response.Content.ReadAsStringAsync());
 
-                    foreach (var record in recordsResponse)
-                    {
-                        var customRecord = PopulateCustomFields(record, endpoint);
-                        records.Add(customRecord);
-                    }
-                } while (morePages);
+                foreach (var record in recordsResponse)
+                {
+                    var customRecord = PopulateCustomFields(record, endpoint);
 
-                return records;
-            }
-            catch
-            {
-                Logger.Info($"No records for path {path}");
-                return records;
-            }
+                    yield return customRecord;
+                }
+            } while (morePages);
         }
 
         /// <summary>
