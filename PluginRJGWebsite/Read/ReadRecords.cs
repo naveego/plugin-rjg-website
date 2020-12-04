@@ -55,7 +55,7 @@ namespace PluginRJGWebsite.Read
             while (true)
             {
                 var response = await client.GetAsync($"{path}?page={page}");
-                if (!response.IsSuccessStatusCode)
+                if (await response.Content.ReadAsStringAsync() == "[]")
                 {
                     break;
                 }
