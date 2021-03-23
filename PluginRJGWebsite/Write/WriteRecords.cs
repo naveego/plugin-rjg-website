@@ -22,7 +22,8 @@ namespace PluginRJGWebsite.Write
         /// <param name="endpointHelper"></param>
         /// <param name="client"></param>
         /// <returns></returns>
-        public static async Task<string> PutRecord(Schema schema, Record record, EndpointHelper endpointHelper, RequestHelper client)
+        public static async Task<string> PutRecord(Schema schema, Record record, EndpointHelper endpointHelper,
+            RequestHelper client)
         {
             // Logger.SetLogLevel(Logger.LogLevel.Debug);
             Dictionary<string, object> recObj;
@@ -102,7 +103,6 @@ namespace PluginRJGWebsite.Write
             return "Write backs are only supported for Classes.";
         }
         
-        
         /// <summary>
         /// Deletes a record from the RJG Website
         /// </summary>
@@ -111,7 +111,8 @@ namespace PluginRJGWebsite.Write
         /// <param name="endpointHelper"></param>
         /// <param name="client"></param>
         /// <returns></returns>
-        public static async Task<string> DeleteRecord(Schema schema, Record record, EndpointHelper endpointHelper, RequestHelper client)
+        public static async Task<string> DeleteRecord(Schema schema, Record record, EndpointHelper endpointHelper,
+            RequestHelper client)
         {
             Dictionary<string, object> recObj;
             var endpoint = endpointHelper.GetEndpointForName(schema.Id);
@@ -162,7 +163,7 @@ namespace PluginRJGWebsite.Write
 
             return "Write backs are only supported for Classes.";
         }
-        
+
         /// <summary>
         /// Gets the object to write out to the endpoint
         /// </summary>
@@ -323,7 +324,7 @@ namespace PluginRJGWebsite.Write
                     {
                         visible = true;
                     }
-                    
+
                     if (recObj.TryGetValue("currency", out var currency))
                     {
                         if (currency == null)
@@ -335,7 +336,7 @@ namespace PluginRJGWebsite.Write
                     {
                         currency = "";
                     }
-                    
+
                     if (recObj.TryGetValue("affiliation", out var affiliation))
                     {
                         if (affiliation == null)
@@ -346,6 +347,40 @@ namespace PluginRJGWebsite.Write
                     else
                     {
                         affiliation = "";
+                    }
+
+                    if (recObj.TryGetValue("startdatum", out var startDatum))
+                    {
+                        if (startDate != null)
+                        {
+                            startDate = DateTime.Parse(startDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            startDate = "";
+                        }
+                    }
+                    else
+                    {
+                        startDate = "";
+                    }
+
+                    if (recObj.TryGetValue("enddatum", out var endDatum))
+                    {
+                        if (endDate != null)
+                        {
+                            endDate = DateTime.Parse(endDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            endDate = "";
+                        }
+                    }
+                    else
+                    {
+                        endDate = "";
                     }
 
                     return new ClassesPatchObject
@@ -361,7 +396,9 @@ namespace PluginRJGWebsite.Write
                         Price = price.ToString(),
                         Visible = bool.Parse(visible.ToString()),
                         Currency = currency.ToString(),
-                        Affiliation = affiliation.ToString()
+                        Affiliation = affiliation.ToString(),
+                        StartDatum = startDatum.ToString(),
+                        EndDatum = endDatum.ToString()
                     };
                 default:
                     return new object();
@@ -540,7 +577,7 @@ namespace PluginRJGWebsite.Write
                     {
                         visible = true;
                     }
-                    
+
                     if (recObj.TryGetValue("currency", out var currency))
                     {
                         if (currency == null)
@@ -552,7 +589,7 @@ namespace PluginRJGWebsite.Write
                     {
                         currency = "";
                     }
-                    
+
                     if (recObj.TryGetValue("affiliation", out var affiliation))
                     {
                         if (affiliation == null)
@@ -565,6 +602,39 @@ namespace PluginRJGWebsite.Write
                         affiliation = "";
                     }
 
+                    if (recObj.TryGetValue("startdatum", out var startDatum))
+                    {
+                        if (startDate != null)
+                        {
+                            startDate = DateTime.Parse(startDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            startDate = "";
+                        }
+                    }
+                    else
+                    {
+                        startDate = "";
+                    }
+
+                    if (recObj.TryGetValue("enddatum", out var endDatum))
+                    {
+                        if (endDate != null)
+                        {
+                            endDate = DateTime.Parse(endDate.ToString())
+                                .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            endDate = "";
+                        }
+                    }
+                    else
+                    {
+                        endDate = "";
+                    }
 
                     return new ClassesPostObject
                     {
@@ -580,7 +650,9 @@ namespace PluginRJGWebsite.Write
                         Price = price.ToString(),
                         Visible = bool.Parse(visible.ToString()),
                         Currency = currency.ToString(),
-                        Affiliation = affiliation.ToString()
+                        Affiliation = affiliation.ToString(),
+                        StartDatum = startDatum.ToString(),
+                        EndDatum = endDatum.ToString()
                     };
                 default:
                     return new object();
