@@ -494,6 +494,28 @@ namespace PluginRJGWebsite.Discover
                     TypeAtSource = "boolean",
                     IsNullable = false
                 },
+                new Property
+                {
+                    Id = "startdatum",
+                    Name = "startdatum",
+                    Type = PropertyType.Datetime,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "date",
+                    IsNullable = true
+                },
+                new Property
+                {
+                    Id = "enddatum",
+                    Name = "enddatum",
+                    Type = PropertyType.Datetime,
+                    IsKey = false,
+                    IsCreateCounter = false,
+                    IsUpdateCounter = false,
+                    TypeAtSource = "date",
+                    IsNullable = true
+                },
             };
 
             schema.Properties.AddRange(properties);
