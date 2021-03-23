@@ -59,7 +59,7 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
+                Logger.Error(e, e.Message, context);
                 return new ConnectResponse
                 {
                     OauthStateJson = request.OauthStateJson,
@@ -76,14 +76,20 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
-                throw;
+                Logger.Error(e, e.Message, context);
+                return new ConnectResponse
+                {
+                    OauthStateJson = request.OauthStateJson,
+                    ConnectionError = "",
+                    OauthError = "",
+                    SettingsError = e.Message
+                };
             }
 
             // attempt to call the RJG Website api
             try
             {
-                var response = await _client.GetAsync("/rjg/v1/courses");
+                var response = await _client.GetAsync("/rjg/v2/classes");
                 response.EnsureSuccessStatusCode();
 
                 _server.Connected = true;
@@ -91,7 +97,7 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
+                Logger.Error(e, e.Message, context);
 
                 return new ConnectResponse
                 {
@@ -172,8 +178,8 @@ namespace PluginRJGWebsite.Plugin
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e.Message);
-                    throw;
+                    Logger.Error(e, e.Message, context);
+                    return new DiscoverSchemasResponse();
                 }
             }
 
@@ -191,8 +197,8 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
-                throw;
+                Logger.Error(e, e.Message, context);
+                return new DiscoverSchemasResponse();
             }
 
             // return all schemas otherwise
@@ -224,9 +230,9 @@ namespace PluginRJGWebsite.Plugin
             try
             {
                 var recordsCount = 0;
-                var records = await ReadRecords.GetAllRecords(_client, endpoint);
-
-                foreach (var record in records)
+                var records = ReadRecords.GetAllRecords(_client, endpoint);
+                
+                await foreach (var record in records)
                 {
                     var preparedRecord = PrepareRecords.PrepareRecordTypes(record, schema, endpoint);
                     
@@ -251,10 +257,7 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
-                Logger.Error(e.Source);
-                Logger.Error(e.StackTrace);
-                throw;
+                Logger.Error(e, e.Message, context);
             }
         }
 
@@ -341,7 +344,7 @@ namespace PluginRJGWebsite.Plugin
                     }
                     else
                     {
-                        Logger.Error($"Timed out on: {JsonConvert.SerializeObject(record, Formatting.Indented)}");
+                        Logger.Error(null, $"Timed out on: {JsonConvert.SerializeObject(record, Formatting.Indented)}");
                         // send timeout ack
                         var ack = new RecordAck
                         {
@@ -356,8 +359,7 @@ namespace PluginRJGWebsite.Plugin
             }
             catch (Exception e)
             {
-                Logger.Error(e.Message);
-                throw;
+                Logger.Error(e, e.Message, context);
             }
         }
 

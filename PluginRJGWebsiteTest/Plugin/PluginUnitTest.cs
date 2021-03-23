@@ -12,7 +12,7 @@ using Record = Naveego.Sdk.Plugins.Record;
 
 namespace PluginRJGWebsiteTest.Plugin
 {
-    public class PluginTest
+    public class PluginUnitTest
     {
         private ConnectRequest GetConnectSettings()
         {
