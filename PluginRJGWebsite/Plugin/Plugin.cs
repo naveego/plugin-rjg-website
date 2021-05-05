@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Naveego.Sdk.Logging;
 using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -49,7 +50,7 @@ namespace PluginRJGWebsite.Plugin
         {
             _server.Connected = false;
 
-            Logger.Info("Connecting...", true);
+            Logger.Info("Connecting...");
 
             // validate settings passed in
             try
@@ -93,7 +94,7 @@ namespace PluginRJGWebsite.Plugin
                 response.EnsureSuccessStatusCode();
 
                 _server.Connected = true;
-                Logger.Info("Connected to RJG Website", true);
+                Logger.Info("Connected to RJG Website");
             }
             catch (Exception e)
             {
@@ -148,7 +149,7 @@ namespace PluginRJGWebsite.Plugin
             ServerCallContext context)
         {
             // Logger.SetLogPrefix("discover");
-            Logger.Info("Discovering Schemas...", true);
+            Logger.Info("Discovering Schemas...");
 
             var discoverSchemasResponse = new DiscoverSchemasResponse();
 
@@ -159,7 +160,7 @@ namespace PluginRJGWebsite.Plugin
                 {
                     var refreshSchemas = request.ToRefresh;
 
-                    Logger.Info($"Refresh schemas attempted: {refreshSchemas.Count}", true);
+                    Logger.Info($"Refresh schemas attempted: {refreshSchemas.Count}");
 
                     var tasks = refreshSchemas.Select((s) =>
                         {
@@ -173,7 +174,7 @@ namespace PluginRJGWebsite.Plugin
                     discoverSchemasResponse.Schemas.AddRange(tasks.Where(x => x.Result != null).Select(x => x.Result));
 
                     // return refresh schemas 
-                    Logger.Info($"Schemas returned: {discoverSchemasResponse.Schemas.Count}", true);
+                    Logger.Info($"Schemas returned: {discoverSchemasResponse.Schemas.Count}");
                     return discoverSchemasResponse;
                 }
                 catch (Exception e)
@@ -186,7 +187,7 @@ namespace PluginRJGWebsite.Plugin
             // get all schemas
             try
             {
-                Logger.Info($"Schemas attempted: {_endpointHelper.Endpoints.Count}", true);
+                Logger.Info($"Schemas attempted: {_endpointHelper.Endpoints.Count}");
 
                 var tasks = _endpointHelper.Endpoints.Select(e => DiscoverSchema.GetSchemaForEndpoint(e, _client))
                     .ToArray();
@@ -202,7 +203,7 @@ namespace PluginRJGWebsite.Plugin
             }
 
             // return all schemas otherwise
-            Logger.Info($"Schemas returned: {discoverSchemasResponse.Schemas.Count}", true);
+            Logger.Info($"Schemas returned: {discoverSchemasResponse.Schemas.Count}");
             return discoverSchemasResponse;
         }
 
@@ -223,7 +224,6 @@ namespace PluginRJGWebsite.Plugin
             var endpoint = _endpointHelper.GetEndpointForName(schema.Id);
             
             Logger.SetLogPrefix(jobId);
-            Logger.WriteBuffer();
 
             Logger.Info($"Publishing records for schema: {schema.Name}");
 
@@ -270,7 +270,6 @@ namespace PluginRJGWebsite.Plugin
         public override Task<PrepareWriteResponse> PrepareWrite(PrepareWriteRequest request, ServerCallContext context)
         {
             Logger.SetLogPrefix(request.DataVersions.JobId);
-            Logger.WriteBuffer();
             Logger.Info("Preparing write...");
             _server.WriteConfigured = false;
 
@@ -382,8 +381,6 @@ namespace PluginRJGWebsite.Plugin
                 _tcs = null;
             }
 
-            Logger.WriteBuffer();
-            
             Logger.Info("Disconnected");
             return Task.FromResult(new DisconnectResponse());
         }

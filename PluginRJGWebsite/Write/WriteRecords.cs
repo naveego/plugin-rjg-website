@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Naveego.Sdk.Logging;
 using Naveego.Sdk.Plugins;
 using Newtonsoft.Json;
 using PluginRJGWebsite.DataContracts;
@@ -351,36 +352,36 @@ namespace PluginRJGWebsite.Write
 
                     if (recObj.TryGetValue("startdatum", out var startDatum))
                     {
-                        if (startDate != null)
+                        if (startDatum != null)
                         {
-                            startDate = DateTime.Parse(startDate.ToString())
+                            startDatum = DateTime.Parse(startDatum.ToString())
                                 .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            startDate = "";
+                            startDatum = "";
                         }
                     }
                     else
                     {
-                        startDate = "";
+                        startDatum = "";
                     }
 
                     if (recObj.TryGetValue("enddatum", out var endDatum))
                     {
-                        if (endDate != null)
+                        if (endDatum != null)
                         {
-                            endDate = DateTime.Parse(endDate.ToString())
+                            endDatum = DateTime.Parse(endDatum.ToString())
                                 .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            endDate = "";
+                            endDatum = "";
                         }
                     }
                     else
                     {
-                        endDate = "";
+                        endDatum = "";
                     }
 
                     return new ClassesPatchObject
@@ -604,36 +605,36 @@ namespace PluginRJGWebsite.Write
 
                     if (recObj.TryGetValue("startdatum", out var startDatum))
                     {
-                        if (startDate != null)
+                        if (startDatum != null)
                         {
-                            startDate = DateTime.Parse(startDate.ToString())
+                            startDatum = DateTime.Parse(startDatum.ToString())
                                 .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            startDate = "";
+                            startDatum = "";
                         }
                     }
                     else
                     {
-                        startDate = "";
+                        startDatum = "";
                     }
 
                     if (recObj.TryGetValue("enddatum", out var endDatum))
                     {
-                        if (endDate != null)
+                        if (endDatum != null)
                         {
-                            endDate = DateTime.Parse(endDate.ToString())
+                            endDatum = DateTime.Parse(endDatum.ToString())
                                 .ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            endDate = "";
+                            endDatum = "";
                         }
                     }
                     else
                     {
-                        endDate = "";
+                        endDatum = "";
                     }
 
                     return new ClassesPostObject

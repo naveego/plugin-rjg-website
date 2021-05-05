@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Grpc.Core;
+using Naveego.Sdk.Logging;
 using Naveego.Sdk.Plugins;
 using PluginRJGWebsite.Helper;
 
@@ -35,12 +36,12 @@ namespace PluginRJGWebsite
             
                 Console.WriteLine(output);
 
-                Logger.Info("Started on port " + server.Ports.First().BoundPort, true);
+                Logger.Info("Started on port " + server.Ports.First().BoundPort);
                 
                 // wait to exit until given input
                 Console.ReadLine();
                 
-                Logger.Info("Plugin exiting...", true);
+                Logger.Info("Plugin exiting...");
 
                 // shutdown server
                 server.ShutdownAsync().Wait();
