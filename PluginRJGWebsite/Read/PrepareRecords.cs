@@ -44,7 +44,16 @@ namespace PluginRJGWebsite.Read
                                     record[property.Id] = date.ToString("O", CultureInfo.InvariantCulture);
                                 }
                             }
-
+                            break;
+                        case PropertyType.Integer:
+                            var rawValue = record[property.Id];
+                            if (rawValue != null)
+                            {
+                                if (string.IsNullOrWhiteSpace(rawValue.ToString()))
+                                {
+                                    record[property.Id] = null;
+                                }
+                            }
                             break;
                     }
 
