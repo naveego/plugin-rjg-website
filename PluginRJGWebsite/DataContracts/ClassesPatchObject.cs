@@ -32,5 +32,7 @@ namespace PluginRJGWebsite.DataContracts
         [JsonProperty("startdatum")] public string StartDatum { get; set; }
 
         [JsonProperty("enddatum")] public string EndDatum { get; set; }
+        
+        [JsonProperty("external")] public string External { get; set; }
     }
 }

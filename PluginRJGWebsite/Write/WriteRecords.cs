@@ -383,6 +383,18 @@ namespace PluginRJGWebsite.Write
                     {
                         endDatum = "";
                     }
+                    
+                    if (recObj.TryGetValue("external", out var external))
+                    {
+                        if (external == null)
+                        {
+                            external = "";
+                        }
+                    }
+                    else
+                    {
+                        external = "";
+                    }
 
                     return new ClassesPatchObject
                     {
@@ -399,7 +411,8 @@ namespace PluginRJGWebsite.Write
                         Currency = currency.ToString(),
                         Affiliation = affiliation.ToString(),
                         StartDatum = startDatum.ToString(),
-                        EndDatum = endDatum.ToString()
+                        EndDatum = endDatum.ToString(),
+                        External = external.ToString()
                     };
                 default:
                     return new object();
@@ -636,6 +649,18 @@ namespace PluginRJGWebsite.Write
                     {
                         endDatum = "";
                     }
+                    
+                    if (recObj.TryGetValue("external", out var external))
+                    {
+                        if (external == null)
+                        {
+                            external = "";
+                        }
+                    }
+                    else
+                    {
+                        external = "";
+                    }
 
                     return new ClassesPostObject
                     {
@@ -653,7 +678,8 @@ namespace PluginRJGWebsite.Write
                         Currency = currency.ToString(),
                         Affiliation = affiliation.ToString(),
                         StartDatum = startDatum.ToString(),
-                        EndDatum = endDatum.ToString()
+                        EndDatum = endDatum.ToString(),
+                        External = external.ToString()
                     };
                 default:
                     return new object();

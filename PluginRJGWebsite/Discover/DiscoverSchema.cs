@@ -540,6 +540,17 @@ namespace PluginRJGWebsite.Discover
                     TypeAtSource = "date",
                     IsNullable = true
                 },
+                new Property
+                {
+                  Id = "external",
+                  Name = "external",
+                  Type = PropertyType.String,
+                  IsKey = false,
+                  IsCreateCounter = false,
+                  IsUpdateCounter = false,
+                  TypeAtSource = "string",
+                  IsNullable = true
+                },
             };
 
       schema.Properties.AddRange(properties);
